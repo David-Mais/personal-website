@@ -11,7 +11,7 @@ function Navbar({ scrollToSection }) {
   return (
     <>
       <nav className="nav">
-        <a href="/" className="logo">
+        <a href="/personal-website" className="logo">
           My Logo
         </a>
         <ul className={isMobile ? "nav-links mobile" : "nav-links"}>
