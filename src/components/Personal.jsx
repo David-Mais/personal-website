@@ -5,10 +5,7 @@ function Personal() {
     <>
       <div className="personal-info">
         <div className="profile-picture">
-          <img
-            src="personal-website/src/images/my-pic.jpg"
-            alt="profile picture"
-          />
+          <img src="./src/images/my-pic.jpg" alt="profile picture" />
         </div>
         <div className="title">
           <h1>
