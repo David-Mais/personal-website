@@ -1,4 +1,5 @@
 import Navbar from "../components/Navbar";
+import Personal from "../components/Personal";
 
 function HomePage() {
   const scrollToSection = (sectionId) => {
@@ -11,6 +12,7 @@ function HomePage() {
   return (
     <>
       <Navbar scrollToSection={scrollToSection} />
+      <Personal />
     </>
   );
 }

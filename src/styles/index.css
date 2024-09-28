@@ -1,5 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poppins:ital,wght@0,1000,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap");
 
 * {
   box-sizing: border-box;
@@ -30,7 +31,7 @@ nav .logo {
   color: white;
   font-size: 24px;
   font-weight: 600;
-  margin-left: 50px;
+  margin-left: 13%;
 }
 
 nav ul {
@@ -39,7 +40,7 @@ nav ul {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-right: 50px;
+  margin-right: 13%;
 }
 
 nav li {
@@ -123,21 +124,23 @@ nav button:not(:hover)::after {
     display: flex;
     flex-direction: column;
     width: 100%;
-    position: absolute;
+    height: 0;
+    position: fixed;
     top: 60px;
     left: 0;
     background-color: #222222;
-    padding: 0; /* Start with no padding */
-    max-height: 0; /* Start with height 0 */
-    overflow: hidden; /* Hide overflow to create the sliding effect */
-    transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out; /* Add smooth transition */
-    z-index: 1;
+    padding: 0;
+    overflow: hidden;
+    transition: 1s;
+    z-index: 999;
+    gap: 2rem;
   }
 
   /* When the menu is open */
   nav ul.mobile {
-    max-height: 380px; /* Set max-height large enough to fit your menu */
-    padding: 20px 0; /* Add padding back when the menu is open */
+    height: 100vh;
+    padding: 20px 0;
+    justify-content: center;
   }
 
   /* Show the hamburger icon */
@@ -152,11 +155,117 @@ nav button:not(:hover)::after {
     text-align: center;
   }
 
+  nav .logo {
+    margin-left: 0;
+  }
+
   /* Ensure the button covers the entire width of the mobile menu */
   nav button {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    align-items: center;
   }
+}
+
+/* Personal description */
+.personal-info {
+  margin-top: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-picture {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 250px;
+  height: 250px;
+  position: relative;
+  background-color: transparent;
+  border-radius: 500px;
+  z-index: 1;
+}
+
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.profile-picture::after,
+.profile-picture::before {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: -1;
+  border-radius: 500px;
+  padding: 5px;
+  background-image: conic-gradient(
+    from var(--angle),
+    #ff8660,
+    #9a33ff,
+    #ff8660
+  );
+  animation: 3s spin linear infinite;
+}
+
+@keyframes spin {
+  from {
+    --angle: 0deg;
+  }
+  to {
+    --angle: 360deg;
+  }
+}
+
+.profile-picture img {
+  width: 250px;
+  height: 250px;
+  border-radius: 500px;
+  object-fit: cover;
+  z-index: 1;
+  background-color: transparent;
+  border: none;
+}
+
+.title {
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 55%;
+}
+
+.title h1 {
+  color: white;
+  font-family: "Poppins";
+  font-weight: 900;
+  font-size: 55px;
+}
+
+.gradient-text {
+  background: linear-gradient(to right, #ff8660, #9a33ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.my-description {
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 50%;
+}
+
+.my-description p {
+  font-size: 18px;
+  color: #c5c5c5;
+  font-family: "Poppins";
 }
