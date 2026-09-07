@@ -7,6 +7,9 @@ const blog = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
+    seoTitle: z.string().min(1).optional(),
+    seoDescription: z.string().min(1).optional(),
+    canonical: z.string().url().optional(),
     author: z.string().default("Davit Maisuradze"),
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),

@@ -1,0 +1,59 @@
+---
+title: "How a Georgian Folk Tale Reminded Me of the Call Stack"
+description: "A conversation about Georgian culture led me to an unexpected connection between a folk tale and the way a program's call stack works."
+seoTitle: "Georgian Folk Tale and the Call Stack | Davit Maisuradze"
+seoDescription: "Davit Maisuradze explains how the Georgian folk tale The Flea and the Ant mirrors a programming call stack and its reverse return order."
+canonical: "https://davitmaisuradze.com/blog/georgian-folk-connection-to-call-stack/"
+author: "Davit Maisuradze"
+pubDate: 2026-09-07
+updatedDate: 2026-09-07
+tags:
+  - programming
+  - computer-science
+  - georgian-culture
+featured: true
+draft: false
+---
+
+import CallStackGallery from "../../components/CallStackGallery.astro";
+import BlogCallout from "../../components/BlogCallout.astro";
+
+A few days ago, I was attending a conference in Batumi, Georgia, where I spoke with [Furio Honsell](https://dblp.org/pid/19/6791.html). Furio is one of the smartest people I've met, and I was lucky enough to have him supervise my bachelor's thesis.
+
+He often asks me about Georgian culture. Since he is a mathematician, our conversations tend to drift toward mathematics as well. I enjoy looking for small and surprising details in Georgian culture or language that I can share with him.
+
+That evening, while I was trying to think of another example, my girlfriend reminded me of *The Flea and the Ant*, a traditional Georgian folk tale called „რწყილი და ჭიანჭველა“ in Georgian. It is a short story, so here is a quick summary.
+
+<BlogCallout tone="story" title="The story in brief">
+  <p>A flea and an ant become close friends and set off on a journey. When they reach a stream, the flea jumps across, but the ant falls into the water. The ant calls for help, so the flea goes looking for something that can save him.</p>
+  <p>The flea asks a pig for a bristle so he can make a rope. The pig wants an acorn first, so the flea goes to an oak tree. The oak wants the crow to leave. The crow asks for a chick, the hen asks for millet, the grain pit wants the mouse gone, the mouse wants the cat gone, the cat asks for milk, and the cow finally asks for grass.</p>
+  <p>The flea gathers the grass, and the whole chain starts working backward. The cow gives milk, the cat leaves the mouse alone, the mouse leaves the grain pit, and the pit gives up the millet. The hen provides a chick, the crow leaves the oak, the oak gives an acorn, and the pig gives the flea a bristle. The flea makes a rope from it, pulls the ant out of the stream, and the two friends continue on their way.</p>
+</BlogCallout>
+
+If you are a programmer, you may already see where I am going with this.
+
+The chain looks a lot like a program's call stack. Each character has a task they cannot finish yet, so they ask someone else for help and wait.
+
+The same thing happens when one function calls another. The current function pauses, and the new call adds a frame to the stack. This continues until the final function has something to return. The stack then unwinds in reverse order. Each function finishes its work and hands control back to the function that called it.
+
+<CallStackGallery />
+
+## Why the order matters
+
+The flea asks the pig for help near the beginning, but the pig cannot help until almost everyone else has done their part. The cow receives the last request, yet gives the first useful result. From there, each result travels backward through the chain.
+
+That reverse order is the important part. A stack follows the last in, first out rule. The most recently called function finishes first. Its frame is removed, and the function below it continues from where it paused.
+
+For example, `getMilk()` pauses when it calls `getGrass()`. Once `getGrass()` returns the grass, its frame is removed and `getMilk()` resumes. It gets the milk and returns it to `moveMouse()`. Much later, `getBristle()` returns a bristle to `makeRope()`, which turns it into a rope and passes it back to `rescueAnt()`.
+
+## Where the analogy fits
+
+The story is not a computer program, and I doubt anyone told it with call stacks in mind. Still, the order is the same. Requests build up in one direction and are resolved in the other.
+
+A real stack frame also stores the information a function needs when it resumes, including its local variables and return address. The characters do something loosely similar. Each one remembers what they promised to do while waiting for the next request to be completed.
+
+## Final thoughts
+
+The real lesson of the folk tale is about friendship, persistence, and helping someone who needs you. The call stack is just an accidental second reading, but it made a familiar story feel new to me.
+
+It also gave me a good answer for the next time Furio asks me about Georgian culture. I can tell him that one of our folk tales contains a surprisingly good explanation of the call stack.

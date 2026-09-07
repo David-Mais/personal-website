@@ -8,6 +8,11 @@ function formatDate(dateString) {
   }).format(new Date(dateString));
 }
 
+function formatTag(tag) {
+  const words = tag.replaceAll("-", " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 export default function BlogFilters({ posts, baseUrl }) {
   const [query, setQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
@@ -74,9 +79,12 @@ export default function BlogFilters({ posts, baseUrl }) {
   const filteredPosts = posts.filter((post) => {
     const matchesTag =
       selectedTag === "all" || post.tags.includes(selectedTag);
+    const searchableText = [post.title, post.description, ...post.tags]
+      .join(" ")
+      .toLowerCase();
     const matchesQuery =
       normalizedQuery.length === 0 ||
-      post.title.toLowerCase().includes(normalizedQuery);
+      searchableText.includes(normalizedQuery);
 
     return matchesTag && matchesQuery;
   });
@@ -85,7 +93,9 @@ export default function BlogFilters({ posts, baseUrl }) {
     <div className="blog-filter-shell">
       <div className="blog-toolbar">
         <label className="blog-search" htmlFor="blog-search">
-          <span className="sr-only">Search articles by title</span>
+          <span className="sr-only">
+            Search articles by title, description, or tag
+          </span>
           <div className="blog-search-input-wrap">
             <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
             <input
@@ -93,7 +103,7 @@ export default function BlogFilters({ posts, baseUrl }) {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search posts..."
+              placeholder="Search articles"
               autoComplete="off"
             />
           </div>
@@ -126,7 +136,7 @@ export default function BlogFilters({ posts, baseUrl }) {
             onClick={() => setSelectedTag(tag)}
             aria-pressed={selectedTag === tag}
           >
-            {tag}
+            {formatTag(tag)}
           </button>
         ))}
       </div>
@@ -153,7 +163,7 @@ export default function BlogFilters({ posts, baseUrl }) {
                 <div className="blog-card-tags">
                   {post.tags.map((tag) => (
                     <span className="blog-card-tag" key={tag}>
-                      {tag}
+                      {formatTag(tag)}
                     </span>
                   ))}
                 </div>

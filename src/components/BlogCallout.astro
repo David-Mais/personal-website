@@ -1,0 +1,127 @@
+---
+interface Props {
+  title: string;
+  tone?: "note" | "tip" | "warning" | "story";
+}
+
+const { title, tone = "note" } = Astro.props;
+const markers = {
+  note: "i",
+  tip: "+",
+  warning: "!",
+  story: "S",
+};
+---
+
+<aside class:list={["blog-callout", `blog-callout--${tone}`]} aria-label={title}>
+  <header class="blog-callout__header">
+    <span class="blog-callout__marker" aria-hidden="true">{markers[tone]}</span>
+    <p>{title}</p>
+  </header>
+  <div class="blog-callout__body">
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .blog-callout {
+    --callout-accent: #7db7ff;
+    --callout-soft: rgba(91, 173, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    padding: clamp(1rem, 3vw, 1.35rem);
+    border: 1px solid color-mix(in srgb, var(--callout-accent) 28%, transparent);
+    border-radius: 20px;
+    background:
+      linear-gradient(135deg, var(--callout-soft), transparent 65%),
+      rgba(255, 255, 255, 0.03);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    font-style: normal;
+  }
+
+  .blog-callout::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--callout-accent);
+  }
+
+  .blog-callout--tip {
+    --callout-accent: #65d3a0;
+    --callout-soft: rgba(101, 211, 160, 0.1);
+  }
+
+  .blog-callout--warning {
+    --callout-accent: #f2bd62;
+    --callout-soft: rgba(242, 189, 98, 0.1);
+  }
+
+  .blog-callout--story {
+    --callout-accent: #ff9d7d;
+    --callout-soft: rgba(255, 134, 96, 0.1);
+  }
+
+  .blog-callout__header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.8rem;
+    font-family: "Poppins", sans-serif;
+  }
+
+  .blog-callout__header p {
+    margin: 0;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+  }
+
+  .blog-callout__marker {
+    display: grid;
+    flex: 0 0 auto;
+    width: 1.7rem;
+    height: 1.7rem;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--callout-accent) 42%, transparent);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--callout-accent) 13%, transparent);
+    color: var(--callout-accent);
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+
+  .blog-callout__body {
+    color: #e8ded6;
+    font-size: 0.98em;
+    line-height: 1.75;
+  }
+
+  .blog-callout__body :global(p) {
+    margin: 0;
+  }
+
+  .blog-callout__body :global(p + p),
+  .blog-callout__body :global(ul + p),
+  .blog-callout__body :global(p + ul) {
+    margin-top: 0.85rem;
+  }
+
+  @media (max-width: 540px) {
+    .blog-callout {
+      padding: 0.95rem;
+      border-radius: 16px;
+    }
+
+    .blog-callout__header {
+      margin-bottom: 0.65rem;
+    }
+
+    .blog-callout__body {
+      font-size: 0.96em;
+      line-height: 1.68;
+    }
+  }
+</style>

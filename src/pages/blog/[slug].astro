@@ -7,7 +7,7 @@ export async function getStaticPaths() {
   const posts = await getCollection("blog", ({ data }) => !data.draft);
 
   return posts.map((post) => ({
-    params: { slug: post.id.replace(/\.md$/, "") },
+    params: { slug: post.id.replace(/\.mdx?$/, "") },
     props: { post },
   }));
 }
@@ -23,13 +23,18 @@ const readingTime = Math.max(
 );
 const authorName = post.data.author ?? "Davit Maisuradze";
 const siteUrl = Astro.site ?? new URL(Astro.url.origin);
-const canonicalUrl = new URL(Astro.url.pathname, siteUrl);
+const seoTitle = post.data.seoTitle ?? `${post.data.title} | Davit Maisuradze`;
+const seoDescription = post.data.seoDescription ?? post.data.description;
+const canonicalUrl = post.data.canonical
+  ? new URL(post.data.canonical)
+  : new URL(Astro.url.pathname, siteUrl);
 const homepageUrl = new URL("/", siteUrl);
+const blogUrl = new URL("/blog/", siteUrl);
 const socialImagePath =
   post.data.image ?? withBase("resources/images/davit-maisuradze-social-card.png");
 const socialImageUrl = new URL(socialImagePath, siteUrl);
 const socialImageAlt =
-  post.data.imageAlt ?? `${post.data.title} — article by Davit Maisuradze`;
+  post.data.imageAlt ?? `${post.data.title}, an article by Davit Maisuradze`;
 const publishedTime = post.data.pubDate.toISOString();
 const modifiedTime = (post.data.updatedDate ?? post.data.pubDate).toISOString();
 const articleStructuredData = {
@@ -42,7 +47,8 @@ const articleStructuredData = {
     "@id": canonicalUrl.href,
   },
   headline: post.data.title,
-  description: post.data.description,
+  description: seoDescription,
+  inLanguage: "en",
   image: [socialImageUrl.href],
   datePublished: publishedTime,
   dateModified: modifiedTime,
@@ -57,6 +63,36 @@ const articleStructuredData = {
     ],
   },
   keywords: post.data.tags,
+  isPartOf: {
+    "@type": "Blog",
+    "@id": `${blogUrl.href}#blog`,
+    name: "Davit Maisuradze Blog",
+    url: blogUrl.href,
+  },
+};
+const articleBreadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: homepageUrl.href,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Blog",
+      item: blogUrl.href,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: post.data.title,
+      item: canonicalUrl.href,
+    },
+  ],
 };
 
 const formatDate = (date) =>
@@ -68,8 +104,8 @@ const formatDate = (date) =>
 ---
 
 <BlogLayout
-  title={`${post.data.title} | Davit Maisuradze`}
-  description={post.data.description}
+  title={seoTitle}
+  description={seoDescription}
   canonical={canonicalUrl}
   image={socialImageUrl}
   imageAlt={socialImageAlt}
@@ -78,7 +114,7 @@ const formatDate = (date) =>
   modifiedTime={modifiedTime}
   tags={post.data.tags}
   noindex={post.data.noindex}
-  structuredData={articleStructuredData}
+  structuredData={[articleStructuredData, articleBreadcrumbs]}
 >
   <SiteHeader currentPath="/blog" />
 
@@ -92,6 +128,7 @@ const formatDate = (date) =>
       <section class="blog-post-top">
         <div class="blog-post-header">
           <div class="blog-post-heading">
+            <p class="blog-eyebrow">Article</p>
             <h1>{post.data.title}</h1>
             <p class="blog-post-description">{post.data.description}</p>
           </div>

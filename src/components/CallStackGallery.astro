@@ -1,0 +1,369 @@
+---
+type Step = {
+  title: string;
+  description: string;
+  depth: number;
+  phase: "call" | "return" | "complete";
+  active: number;
+  returning?: number;
+  receiving?: number;
+  received?: string;
+  value?: string;
+};
+
+const frames = [
+  "Our Story",
+  "antFalls()",
+  "rescueAnt()",
+  "makeRope()",
+  "getBristle()",
+  "getAcorn()",
+  "moveCrow()",
+  "getChick()",
+  "getMillet()",
+  "moveMouse()",
+  "getMilk()",
+  "getGrass()",
+];
+
+const callCopy = [
+  ["The story begins", "Our Story is the initial frame at the bottom of the call stack."],
+  ["The ant falls", "Our Story calls antFalls(), pushing a new frame onto the stack."],
+  ["The rescue begins", "antFalls() calls rescueAnt(), while the earlier frames wait below it."],
+  ["The flea decides to make a rope", "rescueAnt() calls makeRope(), beginning the chain of requests needed for the rescue."],
+  ["The flea needs a bristle", "makeRope() calls getBristle() and waits for a bristle."],
+  ["The pig needs an acorn", "getBristle() calls getAcorn(), growing the stack again."],
+  ["The oak needs the crow to move", "getAcorn() calls moveCrow() and waits for it to complete."],
+  ["The crow asks for a chick", "moveCrow() calls getChick(), adding another waiting frame."],
+  ["The hen asks for millet", "getChick() calls getMillet() and waits for its result."],
+  ["The grain pit needs the mouse to move", "getMillet() calls moveMouse(), pushing another frame."],
+  ["The cat asks for milk", "moveMouse() calls getMilk() and waits for milk."],
+  ["The cow asks for grass", "getMilk() calls getGrass(), creating the final frame at the top."],
+] as const;
+
+const callSteps: Step[] = callCopy.map(([title, description], active) => ({
+  title,
+  description,
+  depth: active + 1,
+  phase: "call",
+  active,
+}));
+
+const returnSteps: Step[] = [
+  {
+    title: "getGrass() returns grass",
+    description: "The first result is found. getGrass() returns grass to getMilk() and leaves the stack.",
+    depth: 12, phase: "return", active: 11, returning: 11, receiving: 10, value: "grass",
+  },
+  {
+    title: "getMilk() returns milk",
+    description: "getMilk() resumes with the grass, obtains milk, and returns it to moveMouse().",
+    depth: 11, phase: "return", active: 10, returning: 10, receiving: 9, received: "grass", value: "milk",
+  },
+  {
+    title: "moveMouse() completes",
+    description: "moveMouse() resumes with the milk and confirms that the mouse has moved.",
+    depth: 10, phase: "return", active: 9, returning: 9, receiving: 8, received: "milk", value: "mouse moved",
+  },
+  {
+    title: "getMillet() returns millet",
+    description: "With the mouse gone, getMillet() obtains millet and returns it to getChick().",
+    depth: 9, phase: "return", active: 8, returning: 8, receiving: 7, received: "mouse moved", value: "millet",
+  },
+  {
+    title: "getChick() returns a chick",
+    description: "getChick() resumes with the millet and returns a chick to moveCrow().",
+    depth: 8, phase: "return", active: 7, returning: 7, receiving: 6, received: "millet", value: "chick",
+  },
+  {
+    title: "moveCrow() completes",
+    description: "moveCrow() resumes with the chick and confirms that the crow has moved.",
+    depth: 7, phase: "return", active: 6, returning: 6, receiving: 5, received: "chick", value: "crow moved",
+  },
+  {
+    title: "getAcorn() returns an acorn",
+    description: "With the crow gone, getAcorn() obtains an acorn and returns it to getBristle().",
+    depth: 6, phase: "return", active: 5, returning: 5, receiving: 4, received: "crow moved", value: "acorn",
+  },
+  {
+    title: "getBristle() returns a bristle",
+    description: "getBristle() resumes with the acorn, exchanges it for a bristle, and returns the bristle to makeRope().",
+    depth: 5, phase: "return", active: 4, returning: 4, receiving: 3, received: "acorn", value: "bristle",
+  },
+  {
+    title: "makeRope() returns a rope",
+    description: "makeRope() resumes with the bristle, twists it into a rope, and returns the rope to rescueAnt().",
+    depth: 4, phase: "return", active: 3, returning: 3, receiving: 2, received: "bristle", value: "rope",
+  },
+  {
+    title: "rescueAnt() saves the ant",
+    description: "rescueAnt() resumes with the rope, pulls the ant from the stream, and confirms that the ant has been rescued.",
+    depth: 3, phase: "return", active: 2, returning: 2, receiving: 1, received: "rope", value: "ant rescued",
+  },
+  {
+    title: "antFalls() finishes",
+    description: "antFalls() resumes after the rescue and returns control to Our Story, allowing the journey to continue.",
+    depth: 2, phase: "return", active: 1, returning: 1, receiving: 0, received: "ant rescued", value: "journey continues",
+  },
+  {
+    title: "The stack finishes unwinding",
+    description: "Every function has completed and its frame has been removed. Control is back in Our Story.",
+    depth: 1, phase: "complete", active: 0,
+  },
+];
+
+const steps = [...callSteps, ...returnSteps];
+---
+
+<section class="call-stack-gallery" data-call-stack-gallery tabindex="0" role="region"
+  aria-roledescription="carousel" aria-label="How the folktale builds and unwinds a call stack">
+  <header class="gallery-header">
+    <div>
+      <p class="eyebrow">Interactive walkthrough</p>
+      <h2>Following the call stack</h2>
+    </div>
+    <p class="hint">Use the buttons, swipe, or press the left and right arrow keys.</p>
+  </header>
+
+  <div class="stage">
+    {steps.map((step, stepIndex) => (
+      <figure class="slide" data-gallery-slide data-depth={step.depth} data-phase={step.phase} hidden={stepIndex !== 0}
+        aria-label={`Step ${stepIndex + 1} of ${steps.length}: ${step.title}`}>
+        <div class="diagram">
+          <span class:list={["phase", `is-${step.phase}`]}>
+            {step.phase === "call" ? "Calling functions" : step.phase === "return" ? "Returning values" : "Stack complete"}
+          </span>
+          <div class="stack" aria-label={`Call stack with ${step.depth} ${step.depth === 1 ? "frame" : "frames"}`}>
+            <span class="edge-label top">Top of stack</span>
+            <div class="frames">
+              {frames.slice(0, step.depth).map((frame, frameIndex) => (
+                <div class:list={[
+                  "stack-frame",
+                  { "is-active": frameIndex === step.active },
+                  { "is-waiting": frameIndex < step.active },
+                  { "is-returning": frameIndex === step.returning },
+                  { "is-receiving": frameIndex === step.receiving },
+                  { "is-complete": step.phase === "complete" && frameIndex === 0 },
+                ]}>
+                  <code>{frame}</code>
+                  <span class="frame-state">
+                    {frameIndex === step.returning ? `returns: ${step.value}` : null}
+                    {frameIndex === step.receiving ? `receives: ${step.value}` : null}
+                    {frameIndex === step.active && step.received && frameIndex !== step.returning ? `received: ${step.received}` : null}
+                    {frameIndex === step.active && step.phase === "call" ? "running" : null}
+                    {frameIndex < step.active && frameIndex !== step.receiving ? "waiting" : null}
+                    {step.phase === "complete" && frameIndex === 0 ? "finished: journey continues" : null}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <span class="edge-label">Stack base</span>
+          </div>
+        </div>
+        <figcaption><strong>{step.title}</strong><span>{step.description}</span></figcaption>
+      </figure>
+    ))}
+  </div>
+
+  <div class="legend" aria-label="Diagram legend">
+    <span><i class="running"></i>Running</span>
+    <span><i class="waiting"></i>Waiting</span>
+    <span><i class="returning"></i>Returning</span>
+    <span><i class="resuming"></i>Resuming</span>
+  </div>
+
+  <div class="controls">
+    <button type="button" data-gallery-previous aria-label="Show previous step" disabled><span aria-hidden="true">←</span> <span class="button-label">Previous</span></button>
+    <p aria-live="polite" aria-atomic="true">Step <span data-gallery-current>1</span> of {steps.length}</p>
+    <button type="button" data-gallery-next aria-label="Show next step"><span class="button-label">Next</span> <span aria-hidden="true">→</span></button>
+  </div>
+  <div class="progress" aria-hidden="true">
+    {steps.map((_, index) => <span class:list={{ "is-active": index === 0 }} data-gallery-progress></span>)}
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-call-stack-gallery]").forEach((gallery) => {
+    const slides = Array.from(gallery.querySelectorAll<HTMLElement>("[data-gallery-slide]"));
+    const progress = Array.from(gallery.querySelectorAll<HTMLElement>("[data-gallery-progress]"));
+    const previous = gallery.querySelector<HTMLButtonElement>("[data-gallery-previous]");
+    const next = gallery.querySelector<HTMLButtonElement>("[data-gallery-next]");
+    const current = gallery.querySelector<HTMLElement>("[data-gallery-current]");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let active = 0;
+    let touchX = 0;
+    let animating = false;
+
+    const updateControls = () => {
+      progress.forEach((item, i) => item.classList.toggle("is-active", i <= active));
+      if (current) current.textContent = String(active + 1);
+      if (previous) previous.disabled = active === 0;
+      if (next) next.disabled = active === slides.length - 1;
+    };
+
+    const play = async (
+      element: Element | null,
+      keyframes: Keyframe[],
+      options: KeyframeAnimationOptions,
+    ) => {
+      if (!element || reducedMotion.matches) return;
+      try {
+        await element.animate(keyframes, options).finished;
+      } catch {
+        // A superseded animation can reject its finished promise safely.
+      }
+    };
+
+    const show = async (requestedIndex: number) => {
+      const nextIndex = Math.max(0, Math.min(requestedIndex, slides.length - 1));
+      if (nextIndex === active || animating) return;
+
+      animating = true;
+      gallery.setAttribute("aria-busy", "true");
+      const outgoing = slides[active];
+      const incoming = slides[nextIndex];
+      const outgoingDepth = Number(outgoing?.dataset.depth ?? 0);
+      const incomingDepth = Number(incoming?.dataset.depth ?? 0);
+
+      if (incomingDepth < outgoingDepth) {
+        await play(
+          outgoing?.querySelector(".stack-frame.is-active, .stack-frame.is-returning") ?? null,
+          [
+            { opacity: 1, transform: "translateY(0) scale(1)" },
+            { opacity: 0, transform: "translateY(-18px) scale(0.97)" },
+          ],
+          { duration: 190, easing: "cubic-bezier(0.4, 0, 1, 1)" },
+        );
+      }
+
+      if (outgoing) outgoing.hidden = true;
+      if (incoming) incoming.hidden = false;
+      active = nextIndex;
+      updateControls();
+
+      const emphasizedFrame = incoming?.querySelector(
+        incomingDepth > outgoingDepth
+          ? ".stack-frame.is-active"
+          : ".stack-frame.is-returning, .stack-frame.is-receiving, .stack-frame.is-complete",
+      ) ?? null;
+
+      await Promise.all([
+        play(
+          emphasizedFrame,
+          incomingDepth > outgoingDepth
+            ? [
+                { opacity: 0, transform: "translateY(18px) scale(0.97)" },
+                { opacity: 1, transform: "translateY(0) scale(1)" },
+              ]
+            : [
+                { transform: "scale(0.985)", filter: "brightness(1.45)" },
+                { transform: "scale(1)", filter: "brightness(1)" },
+              ],
+          { duration: 240, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+        ),
+        play(
+          incoming?.querySelector("figcaption") ?? null,
+          [{ opacity: 0 }, { opacity: 1 }],
+          { duration: 180, easing: "ease-out" },
+        ),
+      ]);
+
+      gallery.removeAttribute("aria-busy");
+      animating = false;
+    };
+
+    previous?.addEventListener("click", () => void show(active - 1));
+    next?.addEventListener("click", () => void show(active + 1));
+    gallery.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        void show(active + (event.key === "ArrowRight" ? 1 : -1));
+      }
+    });
+    gallery.addEventListener("touchstart", (event) => {
+      touchX = event.changedTouches[0]?.clientX ?? 0;
+    }, { passive: true });
+    gallery.addEventListener("touchend", (event) => {
+      const distance = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+      if (Math.abs(distance) >= 45) void show(active + (distance < 0 ? 1 : -1));
+    }, { passive: true });
+  });
+</script>
+
+<style>
+  .call-stack-gallery { display:grid; gap:1rem; margin-top:2.2em; padding:clamp(1rem,3vw,1.5rem); border:1px solid #ffffff1a; border-radius:24px; background:radial-gradient(circle at top right,#5badff1f,transparent 38%),#ffffff09; font-family:"Poppins",sans-serif; outline:none; touch-action:pan-y; }
+  .call-stack-gallery:focus-visible { box-shadow:0 0 0 3px #7db7ff59; }
+  .gallery-header { display:flex; justify-content:space-between; align-items:end; gap:1rem; }
+  .gallery-header h2 { margin:.25rem 0 0; font-size:clamp(1.3rem,4vw,1.7rem); }
+  .eyebrow { margin:0; color:#ff9d7d; font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+  .hint { max-width:28ch; margin:0; color:#aaa099; font-size:.76rem; line-height:1.5; text-align:right; }
+  .stage { display:grid; place-items:center; box-sizing:border-box; height:720px; padding:clamp(.7rem,2vw,1.25rem); overflow:hidden; border:1px solid #ffffff14; border-radius:18px; background:linear-gradient(#ffffff06 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px),#0808084d; background-size:24px 24px; }
+  .slide { display:grid; grid-template-rows:minmax(0,1fr) minmax(96px,auto); place-items:center; gap:1rem; width:100%; height:100%; margin:0; }
+  .slide[hidden] { display:none; }
+  .diagram { display:grid; grid-template-rows:auto minmax(0,1fr); place-items:center; gap:.65rem; width:min(100%,500px); height:100%; min-height:0; user-select:none; }
+  .phase { padding:.32rem .7rem; border:1px solid #ff9d7d47; border-radius:999px; background:#ff86601a; color:#ffb69f; font-size:.65rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+  .phase.is-return { border-color:#65d3a04d; background:#65d3a01a; color:#9de6c3; }
+  .phase.is-complete { border-color:#9a33ff4d; background:#9a33ff1c; color:#d0a8ff; }
+  .stack { display:grid; align-self:end; gap:.3rem; width:100%; }
+  .edge-label { color:#766e68; font-size:.6rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+  .edge-label.top { text-align:right; }
+  .frames { display:flex; flex-direction:column-reverse; gap:4px; width:100%; padding:.45rem; border:1px solid #ffffff1f; border-top:2px solid #ffffff33; border-radius:6px 6px 14px 14px; background:#0003; box-shadow:0 20px 40px #00000038; }
+  .stack-frame { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:.75rem; min-height:34px; padding:.34rem .7rem; border:1px solid #ffffff1a; border-radius:7px; background:#ffffff0b; color:#d5ccc5; line-height:1.2; }
+  .stack-frame code { min-width:0; overflow:hidden; color:inherit; font-size:clamp(.68rem,2.1vw,.82rem); font-weight:600; text-overflow:ellipsis; white-space:nowrap; }
+  .frame-state { min-width:0; color:#958c85; font-size:clamp(.55rem,1.8vw,.68rem); font-weight:600; text-align:right; white-space:nowrap; }
+  .stack-frame.is-waiting { border-color:#5badff2e; background:#5badff0e; }
+  .stack-frame.is-active { border-color:#ff866080; background:linear-gradient(90deg,#ff86602e,#9a33ff1a); color:#fff; box-shadow:0 0 0 2px #ff866014; }
+  .stack-frame.is-returning { border-color:#65d3a094; background:#65d3a024; color:#e7fff3; box-shadow:0 0 0 2px #65d3a014; }
+  .stack-frame.is-returning .frame-state { color:#9de6c3; }
+  .stack-frame.is-receiving { border-color:#7db7ff80; background:#5badff21; color:#eaf5ff; }
+  .stack-frame.is-receiving .frame-state { color:#a9d4ff; }
+  .stack-frame.is-complete { border-color:#9a33ff85; background:linear-gradient(90deg,#9a33ff2e,#65d3a01f); color:#fff; }
+  figcaption { display:grid; align-content:start; gap:.25rem; box-sizing:border-box; min-height:96px; max-width:60ch; padding:.1rem .5rem .5rem; color:#cfc5bd; font-size:.8rem; line-height:1.45; text-align:center; }
+  figcaption strong { color:#fff; font-size:.92rem; }
+  .legend { display:flex; justify-content:center; flex-wrap:wrap; gap:.65rem 1rem; color:#a89f98; font-size:.66rem; }
+  .legend span { display:inline-flex; align-items:center; gap:.35rem; }
+  .legend i { width:8px; height:8px; border-radius:2px; }
+  .legend .running { background:#ff8660; } .legend .waiting { background:#5badff; } .legend .returning { background:#65d3a0; } .legend .resuming { background:#a9d4ff; }
+  .controls { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:.8rem; }
+  .controls p { margin:0; color:#bdb3ab; font-size:.78rem; white-space:nowrap; }
+  .controls button { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; min-height:44px; width:fit-content; padding:.65rem 1rem; border:1px solid #ffffff24; border-radius:999px; background:#ffffff12; color:#fff; font:inherit; font-size:.8rem; font-weight:600; cursor:pointer; }
+  .controls button:last-child { justify-self:end; }
+  .controls button:hover:not(:disabled), .controls button:focus-visible { border-color:#ff9d7d8c; background:#ff86601f; }
+  .controls button:focus-visible { outline:2px solid #7db7ff; outline-offset:2px; }
+  .controls button:disabled { opacity:.35; cursor:not-allowed; }
+  .progress { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:3px; }
+  .progress span { height:3px; border-radius:999px; background:#ffffff1f; }
+  .progress span.is-active { background:linear-gradient(90deg,#ff8660,#9a33ff); }
+  @media (max-width:600px) {
+    .call-stack-gallery { gap:.75rem; margin-top:1.7em; padding:.8rem; border-radius:19px; }
+    .gallery-header { display:grid; gap:.45rem; }
+    .gallery-header h2 { font-size:1.28rem; }
+    .hint { max-width:none; font-size:.7rem; text-align:left; }
+    .stage { height:700px; padding:.55rem; border-radius:14px; background-size:18px 18px; }
+    .slide { grid-template-rows:minmax(0,1fr) minmax(106px,auto); }
+    .diagram { gap:.45rem; }
+    .phase { padding:.25rem .58rem; font-size:.57rem; }
+    .frames { gap:3px; padding:.32rem; }
+    figcaption { min-height:106px; padding-bottom:.65rem; }
+    .stack-frame { grid-template-columns:minmax(0,42%) minmax(0,58%); gap:.25rem; min-height:29px; padding:.25rem .42rem; }
+    .stack-frame code { font-size:clamp(.58rem,2.75vw,.7rem); }
+    .frame-state { overflow-wrap:anywhere; font-size:clamp(.48rem,2.3vw,.59rem); line-height:1.1; white-space:normal; }
+    .edge-label { font-size:.52rem; }
+    figcaption { font-size:.7rem; line-height:1.38; }
+    figcaption strong { font-size:.8rem; }
+    .legend { gap:.4rem .7rem; font-size:.58rem; }
+    .controls { gap:.45rem; }
+    .controls button { min-width:44px; padding:.55rem .68rem; font-size:.72rem; }
+    .controls p { font-size:.68rem; }
+    .progress { gap:2px; }
+  }
+  @media (max-width:360px) {
+    .call-stack-gallery { margin-inline:-.15rem; padding:.65rem; }
+    .stage { height:690px; padding:.4rem; }
+    .slide { grid-template-rows:minmax(0,1fr) minmax(112px,auto); gap:.65rem; }
+    .stack-frame { min-height:27px; padding-block:.2rem; }
+    .stack-frame code { font-size:.57rem; }
+    .frame-state { font-size:.47rem; }
+    .button-label { display:none; }
+  }
+</style>

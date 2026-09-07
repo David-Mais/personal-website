@@ -67,6 +67,15 @@ const profileStructuredData = {
     ],
   },
 };
+const websiteStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${new URL("/", siteUrl).href}#website`,
+  url: new URL("/", siteUrl).href,
+  name: "Davit Maisuradze",
+  alternateName: "David Maisuradze",
+  inLanguage: "en",
+};
 
 const projects = [
   {
@@ -168,7 +177,7 @@ const projects = [
       description={seoDescription}
       canonical={homepageUrl}
       type="profile"
-      structuredData={profileStructuredData}
+      structuredData={[websiteStructuredData, profileStructuredData]}
     />
     <meta name="theme-color" content="#161513" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
