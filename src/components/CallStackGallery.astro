@@ -45,18 +45,18 @@ const callCopyEn = [
 ] as const;
 
 const callCopyKa = [
-  ["ამბავი იწყება", "Our Story საწყისი ფრეიმია; ის გამოძახების სტეკის ძირში თავსდება."],
-  ["ჭიანჭველა წყალში ვარდება", "Our Story antFalls()-ს იძახებს, სტეკს კი ახალი ფრეიმი ემატება."],
-  ["გადარჩენა იწყება", "antFalls() rescueAnt()-ს იძახებს, ქვემოთ მოთავსებული ფრეიმები კი შედეგს ელოდება."],
+  ["ამბავი იწყება", "Our Story საწყისი ჩარჩოა; ის გამოძახების სტეკის ძირში თავსდება."],
+  ["ჭიანჭველა წყალში ვარდება", "Our Story antFalls()-ს იძახებს, სტეკს კი ახალი ჩარჩო ემატება."],
+  ["გადარჩენა იწყება", "antFalls() rescueAnt()-ს იძახებს, ქვემოთ მოთავსებული ჩარჩოები კი შედეგს ელოდება."],
   ["რწყილი თოკის გაკეთებას გადაწყვეტს", "rescueAnt() makeRope()-ს იძახებს. აქედან იწყება ჭიანჭველას გადასარჩენად საჭირო თხოვნების ჯაჭვი."],
   ["რწყილს ჯაგარი სჭირდება", "makeRope() getBristle()-ს იძახებს და ჯაგარს ელოდება."],
-  ["ღორს რკო სჭირდება", "getBristle() getAcorn()-ს იძახებს, სტეკს კი კიდევ ერთი ფრეიმი ემატება."],
+  ["ღორს რკო სჭირდება", "getBristle() getAcorn()-ს იძახებს, სტეკს კი კიდევ ერთი ჩარჩო ემატება."],
   ["მუხა ყვავის მოშორებას ითხოვს", "getAcorn() moveCrow()-ს იძახებს და მის დასრულებას ელოდება."],
-  ["ყვავი წიწილს ითხოვს", "moveCrow() getChick()-ს იძახებს; სტეკს კიდევ ერთი მომლოდინე ფრეიმი ემატება."],
+  ["ყვავი წიწილს ითხოვს", "moveCrow() getChick()-ს იძახებს; სტეკს კიდევ ერთი მომლოდინე ჩარჩო ემატება."],
   ["კრუხი ფეტვს ითხოვს", "getChick() getMillet()-ს იძახებს და შედეგს ელოდება."],
-  ["ორმო თაგვის მოშორებას ითხოვს", "getMillet() moveMouse()-ს იძახებს და სტეკს ახალ ფრეიმს ამატებს."],
+  ["ორმო თაგვის მოშორებას ითხოვს", "getMillet() moveMouse()-ს იძახებს და სტეკს ახალ ჩარჩოს ამატებს."],
   ["კატა რძეს ითხოვს", "moveMouse() getMilk()-ს იძახებს და რძეს ელოდება."],
-  ["ძროხა ბალახს ითხოვს", "getMilk() getGrass()-ს იძახებს და სტეკის წვეროზე ბოლო ფრეიმი ჩნდება."],
+  ["ძროხა ბალახს ითხოვს", "getMilk() getGrass()-ს იძახებს და სტეკის წვეროზე ბოლო ჩარჩო ჩნდება."],
 ] as const;
 
 const callCopy = isGeorgian ? callCopyKa : callCopyEn;
@@ -144,7 +144,7 @@ const returnStepsKa: Step[] = [
   { title: "makeRope() თოკს აბრუნებს", description: "makeRope() მიღებული ჯაგრისგან თოკს გრეხს და rescueAnt()-ს უბრუნებს.", depth: 4, phase: "return", active: 3, returning: 3, receiving: 2, received: "ჯაგარი", value: "თოკი" },
   { title: "rescueAnt() ჭიანჭველას გადაარჩენს", description: "rescueAnt() მიღებული თოკით ჭიანჭველას წყლიდან ამოიყვანს.", depth: 3, phase: "return", active: 2, returning: 2, receiving: 1, received: "თოკი", value: "ჭიანჭველა გადარჩა" },
   { title: "antFalls() სრულდება", description: "ჭიანჭველას გადარჩენის შემდეგ antFalls() მუშაობას ასრულებს და მართვას Our Story-ს უბრუნებს. მეგობრებს ახლა გზის გაგრძელება შეუძლიათ.", depth: 2, phase: "return", active: 1, returning: 1, receiving: 0, received: "ჭიანჭველა გადარჩა", value: "გზა გრძელდება" },
-  { title: "სტეკი საბოლოოდ იცლება", description: "ყველა ფუნქციამ მუშაობა დაასრულა და მათი ფრეიმები სტეკიდან ამოღებულია. მართვა ისევ Our Story-ში დაბრუნდა.", depth: 1, phase: "complete", active: 0 },
+  { title: "სტეკი საბოლოოდ იცლება", description: "ყველა ფუნქციამ მუშაობა დაასრულა და მათი ჩარჩოები სტეკიდან ამოღებულია. მართვა ისევ Our Story-ში დაბრუნდა.", depth: 1, phase: "complete", active: 0 },
 ];
 
 const returnSteps = isGeorgian ? returnStepsKa : returnStepsEn;
@@ -170,7 +170,7 @@ const steps = [...callSteps, ...returnSteps];
           <span class:list={["phase", `is-${step.phase}`]}>
             {step.phase === "call" ? (isGeorgian ? "ფუნქციების გამოძახება" : "Calling functions") : step.phase === "return" ? (isGeorgian ? "მნიშვნელობების დაბრუნება" : "Returning values") : (isGeorgian ? "სტეკი დასრულებულია" : "Stack complete")}
           </span>
-          <div class="stack" aria-label={isGeorgian ? `გამოძახების სტეკი: ${step.depth} ფრეიმი` : `Call stack with ${step.depth} ${step.depth === 1 ? "frame" : "frames"}`}>
+          <div class="stack" aria-label={isGeorgian ? `გამოძახების სტეკი: ${step.depth} ჩარჩო` : `Call stack with ${step.depth} ${step.depth === 1 ? "frame" : "frames"}`}>
             <span class="edge-label top">{isGeorgian ? "სტეკის წვერო" : "Top of stack"}</span>
             <div class="frames">
               {frames.slice(0, step.depth).map((frame, frameIndex) => (
