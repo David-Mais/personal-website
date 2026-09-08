@@ -2,14 +2,15 @@
 interface Props {
   title: string;
   tone?: "note" | "tip" | "warning" | "story";
+  locale?: "en" | "ka";
 }
 
-const { title, tone = "note" } = Astro.props;
+const { title, tone = "note", locale = "en" } = Astro.props;
 const markers = {
   note: "i",
   tip: "+",
   warning: "!",
-  story: "S",
+  story: locale === "ka" ? "ა" : "S",
 };
 ---
 
@@ -68,6 +69,10 @@ const markers = {
     gap: 0.65rem;
     margin-bottom: 0.8rem;
     font-family: "Poppins", sans-serif;
+  }
+
+  :global(html[lang="ka"]) .blog-callout__header {
+    font-family: "Noto Sans Georgian", sans-serif;
   }
 
   .blog-callout__header p {

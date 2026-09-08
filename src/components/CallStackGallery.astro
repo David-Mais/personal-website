@@ -11,6 +11,9 @@ type Step = {
   value?: string;
 };
 
+const { locale = "en" } = Astro.props;
+const isGeorgian = locale === "ka";
+
 const frames = [
   "Our Story",
   "antFalls()",
@@ -26,7 +29,7 @@ const frames = [
   "getGrass()",
 ];
 
-const callCopy = [
+const callCopyEn = [
   ["The story begins", "Our Story is the initial frame at the bottom of the call stack."],
   ["The ant falls", "Our Story calls antFalls(), pushing a new frame onto the stack."],
   ["The rescue begins", "antFalls() calls rescueAnt(), while the earlier frames wait below it."],
@@ -41,6 +44,23 @@ const callCopy = [
   ["The cow asks for grass", "getMilk() calls getGrass(), creating the final frame at the top."],
 ] as const;
 
+const callCopyKa = [
+  ["ამბავი იწყება", "Our Story საწყისი ფრეიმია; ის გამოძახების სტეკის ძირში თავსდება."],
+  ["ჭიანჭველა წყალში ვარდება", "Our Story antFalls()-ს იძახებს, სტეკს კი ახალი ფრეიმი ემატება."],
+  ["გადარჩენა იწყება", "antFalls() rescueAnt()-ს იძახებს, ქვემოთ მოთავსებული ფრეიმები კი შედეგს ელოდება."],
+  ["რწყილი თოკის გაკეთებას გადაწყვეტს", "rescueAnt() makeRope()-ს იძახებს. აქედან იწყება ჭიანჭველას გადასარჩენად საჭირო თხოვნების ჯაჭვი."],
+  ["რწყილს ჯაგარი სჭირდება", "makeRope() getBristle()-ს იძახებს და ჯაგარს ელოდება."],
+  ["ღორს რკო სჭირდება", "getBristle() getAcorn()-ს იძახებს, სტეკს კი კიდევ ერთი ფრეიმი ემატება."],
+  ["მუხა ყვავის მოშორებას ითხოვს", "getAcorn() moveCrow()-ს იძახებს და მის დასრულებას ელოდება."],
+  ["ყვავი წიწილს ითხოვს", "moveCrow() getChick()-ს იძახებს; სტეკს კიდევ ერთი მომლოდინე ფრეიმი ემატება."],
+  ["კრუხი ფეტვს ითხოვს", "getChick() getMillet()-ს იძახებს და შედეგს ელოდება."],
+  ["ორმო თაგვის მოშორებას ითხოვს", "getMillet() moveMouse()-ს იძახებს და სტეკს ახალ ფრეიმს ამატებს."],
+  ["კატა რძეს ითხოვს", "moveMouse() getMilk()-ს იძახებს და რძეს ელოდება."],
+  ["ძროხა ბალახს ითხოვს", "getMilk() getGrass()-ს იძახებს და სტეკის წვეროზე ბოლო ფრეიმი ჩნდება."],
+] as const;
+
+const callCopy = isGeorgian ? callCopyKa : callCopyEn;
+
 const callSteps: Step[] = callCopy.map(([title, description], active) => ({
   title,
   description,
@@ -49,7 +69,7 @@ const callSteps: Step[] = callCopy.map(([title, description], active) => ({
   active,
 }));
 
-const returnSteps: Step[] = [
+const returnStepsEn: Step[] = [
   {
     title: "getGrass() returns grass",
     description: "The first result is found. getGrass() returns grass to getMilk() and leaves the stack.",
@@ -112,29 +132,46 @@ const returnSteps: Step[] = [
   },
 ];
 
+const returnStepsKa: Step[] = [
+  { title: "getGrass() ბალახს აბრუნებს", description: "პირველი შედეგი მიღებულია: getGrass() ბალახს getMilk()-ს უბრუნებს და სტეკს ტოვებს.", depth: 12, phase: "return", active: 11, returning: 11, receiving: 10, value: "ბალახი" },
+  { title: "getMilk() რძეს აბრუნებს", description: "getMilk() მიღებული ბალახით მუშაობას აგრძელებს, რძეს მოიპოვებს და moveMouse()-ს უბრუნებს.", depth: 11, phase: "return", active: 10, returning: 10, receiving: 9, received: "ბალახი", value: "რძე" },
+  { title: "moveMouse() სრულდება", description: "რძის მიღების შემდეგ moveMouse() მუშაობას აგრძელებს და თაგვს ორმოს აშორებს.", depth: 10, phase: "return", active: 9, returning: 9, receiving: 8, received: "რძე", value: "თაგვი მოშორდა" },
+  { title: "getMillet() ფეტვს აბრუნებს", description: "თაგვის მოშორების შემდეგ getMillet() ფეტვს მოიპოვებს და getChick()-ს უბრუნებს.", depth: 9, phase: "return", active: 8, returning: 8, receiving: 7, received: "თაგვი მოშორდა", value: "ფეტვი" },
+  { title: "getChick() წიწილს აბრუნებს", description: "getChick() მიღებული ფეტვით მუშაობას აგრძელებს და წიწილს moveCrow()-ს უბრუნებს.", depth: 8, phase: "return", active: 7, returning: 7, receiving: 6, received: "ფეტვი", value: "წიწილი" },
+  { title: "moveCrow() სრულდება", description: "წიწილის მიღების შემდეგ moveCrow() მუშაობას აგრძელებს და ყვავს მუხიდან აფრენს.", depth: 7, phase: "return", active: 6, returning: 6, receiving: 5, received: "წიწილი", value: "ყვავი მოშორდა" },
+  { title: "getAcorn() რკოს აბრუნებს", description: "ყვავის მოშორების შემდეგ getAcorn() რკოს მოიპოვებს და getBristle()-ს უბრუნებს.", depth: 6, phase: "return", active: 5, returning: 5, receiving: 4, received: "ყვავი მოშორდა", value: "რკო" },
+  { title: "getBristle() ჯაგარს აბრუნებს", description: "getBristle() მიღებულ რკოს ჯაგარში ცვლის და ჯაგარს makeRope()-ს უბრუნებს.", depth: 5, phase: "return", active: 4, returning: 4, receiving: 3, received: "რკო", value: "ჯაგარი" },
+  { title: "makeRope() თოკს აბრუნებს", description: "makeRope() მიღებული ჯაგრისგან თოკს გრეხს და rescueAnt()-ს უბრუნებს.", depth: 4, phase: "return", active: 3, returning: 3, receiving: 2, received: "ჯაგარი", value: "თოკი" },
+  { title: "rescueAnt() ჭიანჭველას გადაარჩენს", description: "rescueAnt() მიღებული თოკით ჭიანჭველას წყლიდან ამოიყვანს.", depth: 3, phase: "return", active: 2, returning: 2, receiving: 1, received: "თოკი", value: "ჭიანჭველა გადარჩა" },
+  { title: "antFalls() სრულდება", description: "ჭიანჭველას გადარჩენის შემდეგ antFalls() მუშაობას ასრულებს და მართვას Our Story-ს უბრუნებს. მეგობრებს ახლა გზის გაგრძელება შეუძლიათ.", depth: 2, phase: "return", active: 1, returning: 1, receiving: 0, received: "ჭიანჭველა გადარჩა", value: "გზა გრძელდება" },
+  { title: "სტეკი საბოლოოდ იცლება", description: "ყველა ფუნქციამ მუშაობა დაასრულა და მათი ფრეიმები სტეკიდან ამოღებულია. მართვა ისევ Our Story-ში დაბრუნდა.", depth: 1, phase: "complete", active: 0 },
+];
+
+const returnSteps = isGeorgian ? returnStepsKa : returnStepsEn;
+
 const steps = [...callSteps, ...returnSteps];
 ---
 
-<section class="call-stack-gallery" data-call-stack-gallery tabindex="0" role="region"
-  aria-roledescription="carousel" aria-label="How the folktale builds and unwinds a call stack">
+<section class:list={["call-stack-gallery", { "is-georgian": isGeorgian }]} data-call-stack-gallery tabindex="0" role="region"
+  aria-roledescription={isGeorgian ? "კარუსელი" : "carousel"} aria-label={isGeorgian ? "როგორ იზრდება და იცლება გამოძახების სტეკი ზღაპარში" : "How the folktale builds and unwinds a call stack"}>
   <header class="gallery-header">
     <div>
-      <p class="eyebrow">Interactive walkthrough</p>
-      <h2>Following the call stack</h2>
+      <p class="eyebrow">{isGeorgian ? "ინტერაქტიული ახსნა" : "Interactive walkthrough"}</p>
+      <h2>{isGeorgian ? "თვალი მივადევნოთ გამოძახების სტეკს" : "Following the call stack"}</h2>
     </div>
-    <p class="hint">Use the buttons, swipe, or press the left and right arrow keys.</p>
+    <p class="hint">{isGeorgian ? "ნაბიჯებს შორის გადასასვლელად გამოიყენეთ ღილაკები, ეკრანზე თითი გადაუსვით ან კლავიატურის მარცხენა და მარჯვენა ისრებს დააჭირეთ." : "Use the buttons, swipe, or press the left and right arrow keys."}</p>
   </header>
 
   <div class="stage">
     {steps.map((step, stepIndex) => (
       <figure class="slide" data-gallery-slide data-depth={step.depth} data-phase={step.phase} hidden={stepIndex !== 0}
-        aria-label={`Step ${stepIndex + 1} of ${steps.length}: ${step.title}`}>
+        aria-label={isGeorgian ? `ნაბიჯი ${stepIndex + 1}, სულ ${steps.length} ნაბიჯიდან: ${step.title}` : `Step ${stepIndex + 1} of ${steps.length}: ${step.title}`}>
         <div class="diagram">
           <span class:list={["phase", `is-${step.phase}`]}>
-            {step.phase === "call" ? "Calling functions" : step.phase === "return" ? "Returning values" : "Stack complete"}
+            {step.phase === "call" ? (isGeorgian ? "ფუნქციების გამოძახება" : "Calling functions") : step.phase === "return" ? (isGeorgian ? "მნიშვნელობების დაბრუნება" : "Returning values") : (isGeorgian ? "სტეკი დასრულებულია" : "Stack complete")}
           </span>
-          <div class="stack" aria-label={`Call stack with ${step.depth} ${step.depth === 1 ? "frame" : "frames"}`}>
-            <span class="edge-label top">Top of stack</span>
+          <div class="stack" aria-label={isGeorgian ? `გამოძახების სტეკი: ${step.depth} ფრეიმი` : `Call stack with ${step.depth} ${step.depth === 1 ? "frame" : "frames"}`}>
+            <span class="edge-label top">{isGeorgian ? "სტეკის წვერო" : "Top of stack"}</span>
             <div class="frames">
               {frames.slice(0, step.depth).map((frame, frameIndex) => (
                 <div class:list={[
@@ -147,17 +184,17 @@ const steps = [...callSteps, ...returnSteps];
                 ]}>
                   <code>{frame}</code>
                   <span class="frame-state">
-                    {frameIndex === step.returning ? `returns: ${step.value}` : null}
-                    {frameIndex === step.receiving ? `receives: ${step.value}` : null}
-                    {frameIndex === step.active && step.received && frameIndex !== step.returning ? `received: ${step.received}` : null}
-                    {frameIndex === step.active && step.phase === "call" ? "running" : null}
-                    {frameIndex < step.active && frameIndex !== step.receiving ? "waiting" : null}
-                    {step.phase === "complete" && frameIndex === 0 ? "finished: journey continues" : null}
+                    {frameIndex === step.returning ? `${isGeorgian ? "აბრუნებს" : "returns"}: ${step.value}` : null}
+                    {frameIndex === step.receiving ? `${isGeorgian ? "იღებს" : "receives"}: ${step.value}` : null}
+                    {frameIndex === step.active && step.received && frameIndex !== step.returning ? `${isGeorgian ? "მიიღო" : "received"}: ${step.received}` : null}
+                    {frameIndex === step.active && step.phase === "call" ? (isGeorgian ? "მუშაობს" : "running") : null}
+                    {frameIndex < step.active && frameIndex !== step.receiving ? (isGeorgian ? "ელოდება" : "waiting") : null}
+                    {step.phase === "complete" && frameIndex === 0 ? (isGeorgian ? "დასრულდა: გზა გრძელდება" : "finished: journey continues") : null}
                   </span>
                 </div>
               ))}
             </div>
-            <span class="edge-label">Stack base</span>
+            <span class="edge-label">{isGeorgian ? "სტეკის ძირი" : "Stack base"}</span>
           </div>
         </div>
         <figcaption><strong>{step.title}</strong><span>{step.description}</span></figcaption>
@@ -165,25 +202,32 @@ const steps = [...callSteps, ...returnSteps];
     ))}
   </div>
 
-  <div class="legend" aria-label="Diagram legend">
-    <span><i class="running"></i>Running</span>
-    <span><i class="waiting"></i>Waiting</span>
-    <span><i class="returning"></i>Returning</span>
-    <span><i class="resuming"></i>Resuming</span>
+  <div class="legend" aria-label={isGeorgian ? "დიაგრამის განმარტება" : "Diagram legend"}>
+    <span><i class="running"></i>{isGeorgian ? "მუშაობს" : "Running"}</span>
+    <span><i class="waiting"></i>{isGeorgian ? "ელოდება" : "Waiting"}</span>
+    <span><i class="returning"></i>{isGeorgian ? "აბრუნებს" : "Returning"}</span>
+    <span><i class="resuming"></i>{isGeorgian ? "აგრძელებს მუშაობას" : "Resuming"}</span>
   </div>
 
   <div class="controls">
-    <button type="button" data-gallery-previous aria-label="Show previous step" disabled><span aria-hidden="true">←</span> <span class="button-label">Previous</span></button>
-    <p aria-live="polite" aria-atomic="true">Step <span data-gallery-current>1</span> of {steps.length}</p>
-    <button type="button" data-gallery-next aria-label="Show next step"><span class="button-label">Next</span> <span aria-hidden="true">→</span></button>
+    <button type="button" data-gallery-previous aria-label={isGeorgian ? "წინა ნაბიჯზე გადასვლა" : "Show previous step"} disabled><span aria-hidden="true">←</span> <span class="button-label">{isGeorgian ? "წინა" : "Previous"}</span></button>
+    <p aria-live="polite" aria-atomic="true">{isGeorgian ? "ნაბიჯი" : "Step"} <span data-gallery-current>1</span> {isGeorgian ? "/" : "of"} {steps.length}</p>
+    <button type="button" data-gallery-next aria-label={isGeorgian ? "შემდეგ ნაბიჯზე გადასვლა" : "Show next step"}><span class="button-label">{isGeorgian ? "შემდეგი" : "Next"}</span> <span aria-hidden="true">→</span></button>
   </div>
-  <div class="progress" aria-hidden="true">
-    {steps.map((_, index) => <span class:list={{ "is-active": index === 0 }} data-gallery-progress></span>)}
+  <div class="progress" aria-hidden="true" data-gallery-track data-direction="forward">
+    {steps.map((_, index) => (
+      <span
+        class:list={[{ "is-active": index === 0 }, { "is-current": index === 0 }]}
+        data-gallery-progress
+      ></span>
+    ))}
   </div>
 </section>
 
 <script>
-  document.querySelectorAll<HTMLElement>("[data-call-stack-gallery]").forEach((gallery) => {
+  const initGallery = (gallery: HTMLElement) => {
+    if (gallery.dataset.galleryReady) return;
+    gallery.dataset.galleryReady = "true";
     const slides = Array.from(gallery.querySelectorAll<HTMLElement>("[data-gallery-slide]"));
     const progress = Array.from(gallery.querySelectorAll<HTMLElement>("[data-gallery-progress]"));
     const previous = gallery.querySelector<HTMLButtonElement>("[data-gallery-previous]");
@@ -194,11 +238,50 @@ const steps = [...callSteps, ...returnSteps];
     let touchX = 0;
     let animating = false;
 
-    const updateControls = () => {
-      progress.forEach((item, i) => item.classList.toggle("is-active", i <= active));
-      if (current) current.textContent = String(active + 1);
+    const progressTrack = gallery.querySelector<HTMLElement>("[data-gallery-track]");
+
+    // Forward fills each segment from the left; going back drains it to the
+    // right, so the bar reads as a rewind rather than a re-fill.
+    const updateControls = (direction = 1) => {
+      if (progressTrack) {
+        progressTrack.dataset.direction = direction < 0 ? "back" : "forward";
+      }
+
+      progress.forEach((item, i) => {
+        item.classList.toggle("is-active", i <= active);
+        item.classList.toggle("is-current", i === active);
+      });
+
       if (previous) previous.disabled = active === 0;
       if (next) next.disabled = active === slides.length - 1;
+      void setCounter(active + 1, direction);
+    };
+
+    const setCounter = async (value: number, direction: number) => {
+      if (!current) return;
+      if (reducedMotion.matches || current.textContent === String(value)) {
+        current.textContent = String(value);
+        return;
+      }
+
+      const away = direction < 0 ? 9 : -9;
+      await play(
+        current,
+        [
+          { opacity: 1, transform: "translateY(0)" },
+          { opacity: 0, transform: `translateY(${away}px)` },
+        ],
+        { duration: 110, easing: "cubic-bezier(0.4, 0, 1, 1)" },
+      );
+      current.textContent = String(value);
+      await play(
+        current,
+        [
+          { opacity: 0, transform: `translateY(${-away}px)` },
+          { opacity: 1, transform: "translateY(0)" },
+        ],
+        { duration: 190, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+      );
     };
 
     const play = async (
@@ -238,8 +321,9 @@ const steps = [...callSteps, ...returnSteps];
 
       if (outgoing) outgoing.hidden = true;
       if (incoming) incoming.hidden = false;
+      const direction = nextIndex > active ? 1 : -1;
       active = nextIndex;
-      updateControls();
+      updateControls(direction);
 
       const emphasizedFrame = incoming?.querySelector(
         incomingDepth > outgoingDepth
@@ -287,12 +371,21 @@ const steps = [...callSteps, ...returnSteps];
       const distance = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
       if (Math.abs(distance) >= 45) void show(active + (distance < 0 ? 1 : -1));
     }, { passive: true });
-  });
+  };
+
+  const initGalleries = () =>
+    document
+      .querySelectorAll<HTMLElement>("[data-call-stack-gallery]")
+      .forEach(initGallery);
+
+  initGalleries();
+  document.addEventListener("astro:page-load", initGalleries);
 </script>
 
 <style>
   .call-stack-gallery { display:grid; gap:1rem; margin-top:2.2em; padding:clamp(1rem,3vw,1.5rem); border:1px solid #ffffff1a; border-radius:24px; background:radial-gradient(circle at top right,#5badff1f,transparent 38%),#ffffff09; font-family:"Poppins",sans-serif; outline:none; touch-action:pan-y; }
   .call-stack-gallery:focus-visible { box-shadow:0 0 0 3px #7db7ff59; }
+  .call-stack-gallery.is-georgian { font-family:"Noto Sans Georgian",sans-serif; }
   .gallery-header { display:flex; justify-content:space-between; align-items:end; gap:1rem; }
   .gallery-header h2 { margin:.25rem 0 0; font-size:clamp(1.3rem,4vw,1.7rem); }
   .eyebrow { margin:0; color:#ff9d7d; font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
@@ -331,9 +424,17 @@ const steps = [...callSteps, ...returnSteps];
   .controls button:hover:not(:disabled), .controls button:focus-visible { border-color:#ff9d7d8c; background:#ff86601f; }
   .controls button:focus-visible { outline:2px solid #7db7ff; outline-offset:2px; }
   .controls button:disabled { opacity:.35; cursor:not-allowed; }
-  .progress { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:3px; }
-  .progress span { height:3px; border-radius:999px; background:#ffffff1f; }
-  .progress span.is-active { background:linear-gradient(90deg,#ff8660,#9a33ff); }
+  .progress { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; align-items:center; gap:3px; }
+  .progress span { position:relative; height:3px; border-radius:999px; background:#ffffff1f; transition:transform 260ms cubic-bezier(0.16,1,0.3,1); }
+  /* The gradient can't be transitioned, so a scaled overlay does the filling. */
+  .progress span::after { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(90deg,#ff8660,#9a33ff); transform:scaleX(0); transform-origin:left center; transition:transform 300ms cubic-bezier(0.16,1,0.3,1), box-shadow 260ms ease; }
+  .progress[data-direction="back"] span::after { transform-origin:right center; }
+  .progress span.is-active::after { transform:scaleX(1); }
+  .progress span.is-current { transform:scaleY(2); }
+  .progress span.is-current::after { box-shadow:0 0 9px #9a33ffa6; }
+  .controls [data-gallery-current] { display:inline-block; min-width:1.4ch; color:#fff; font-variant-numeric:tabular-nums; text-align:center; }
+  .controls button { transition:border-color 180ms ease, background-color 180ms ease, opacity 180ms ease, transform 180ms cubic-bezier(0.16,1,0.3,1); }
+  .controls button:active:not(:disabled) { transform:scale(0.96); }
   @media (max-width:600px) {
     .call-stack-gallery { gap:.75rem; margin-top:1.7em; padding:.8rem; border-radius:19px; }
     .gallery-header { display:grid; gap:.45rem; }

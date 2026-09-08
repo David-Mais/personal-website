@@ -1,19 +1,32 @@
 import { useDeferredValue, useEffect, useState } from "react";
+import { formatTag } from "../utils/tags.js";
 
-function formatDate(dateString) {
-  return new Intl.DateTimeFormat("en", {
+function formatDate(dateString, locale) {
+  return new Intl.DateTimeFormat(locale === "ka" ? "ka-GE" : "en", {
     year: "numeric",
     month: "short",
     day: "numeric",
   }).format(new Date(dateString));
 }
 
-function formatTag(tag) {
-  const words = tag.replaceAll("-", " ");
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
-export default function BlogFilters({ posts, baseUrl }) {
+export default function BlogFilters({ posts, baseUrl, locale = "en" }) {
+  const isGeorgian = locale === "ka";
+  const copy = isGeorgian
+    ? {
+        progress: "სტატიები მზადდება",
+        coming: "ახალი სტატიები მალე გამოჩნდება.",
+        comingText: "ვამზადებ სტატიებს ბექენდ ინჟინერიის, უსაფრთხოებისა და რეალური პროდუქტების შექმნისას მიღებული გამოცდილების შესახებ.",
+        searchLabel: "სტატიების ძიება სათაურით, აღწერით ან ტეგით",
+        search: "სტატიების ძიება",
+        filter: "ტეგების მიხედვით გაფილტვრა",
+        all: "ყველა",
+        featured: "რჩეული",
+        read: "სტატიის წაკითხვა",
+        none: "არჩეულ პირობებს არცერთი სტატია არ შეესაბამება.",
+        retry: "აირჩიეთ სხვა ტეგი ან წაშალეთ საძიებო ველში ჩაწერილი ტექსტი.",
+        clear: "ფილტრების გასუფთავება",
+      }
+    : null;
   const [query, setQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
   const deferredQuery = useDeferredValue(query);
@@ -65,12 +78,9 @@ export default function BlogFilters({ posts, baseUrl }) {
   if (posts.length === 0) {
     return (
       <div className="blog-empty-state blog-empty-state-initial">
-        <p className="blog-eyebrow">In progress</p>
-        <h2>New writing is on the way.</h2>
-        <p>
-          I’m working on articles about backend engineering, security, and the
-          lessons that come from building real products.
-        </p>
+        <p className="blog-eyebrow">{copy?.progress ?? "In progress"}</p>
+        <h2>{copy?.coming ?? "New writing is on the way."}</h2>
+        <p>{copy?.comingText ?? "I’m working on articles about backend engineering, security, and the lessons that come from building real products."}</p>
       </div>
     );
   }
@@ -79,7 +89,12 @@ export default function BlogFilters({ posts, baseUrl }) {
   const filteredPosts = posts.filter((post) => {
     const matchesTag =
       selectedTag === "all" || post.tags.includes(selectedTag);
-    const searchableText = [post.title, post.description, ...post.tags]
+    const searchableText = [
+      post.title,
+      post.description,
+      ...post.tags,
+      ...post.tags.map((tag) => formatTag(tag, locale)),
+    ]
       .join(" ")
       .toLowerCase();
     const matchesQuery =
@@ -94,7 +109,7 @@ export default function BlogFilters({ posts, baseUrl }) {
       <div className="blog-toolbar">
         <label className="blog-search" htmlFor="blog-search">
           <span className="sr-only">
-            Search articles by title, description, or tag
+            {copy?.searchLabel ?? "Search articles by title, description, or tag"}
           </span>
           <div className="blog-search-input-wrap">
             <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -103,18 +118,18 @@ export default function BlogFilters({ posts, baseUrl }) {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search articles"
+              placeholder={copy?.search ?? "Search articles"}
               autoComplete="off"
             />
           </div>
         </label>
 
         <p className="blog-results-count" aria-live="polite">
-          {filteredPosts.length} post{filteredPosts.length === 1 ? "" : "s"}
+          {isGeorgian ? `${filteredPosts.length} სტატია` : `${filteredPosts.length} post${filteredPosts.length === 1 ? "" : "s"}`}
         </p>
       </div>
 
-      <div className="blog-tag-row" aria-label="Filter by tag">
+      <div className="blog-tag-row" aria-label={copy?.filter ?? "Filter by tag"}>
         <button
           type="button"
           className={`blog-tag-filter ${
@@ -123,7 +138,7 @@ export default function BlogFilters({ posts, baseUrl }) {
           onClick={() => setSelectedTag("all")}
           aria-pressed={selectedTag === "all"}
         >
-          All
+          {copy?.all ?? "All"}
         </button>
 
         {allTags.map((tag) => (
@@ -136,7 +151,7 @@ export default function BlogFilters({ posts, baseUrl }) {
             onClick={() => setSelectedTag(tag)}
             aria-pressed={selectedTag === tag}
           >
-            {formatTag(tag)}
+            {formatTag(tag, locale)}
           </button>
         ))}
       </div>
@@ -151,25 +166,25 @@ export default function BlogFilters({ posts, baseUrl }) {
             >
               <div className="blog-card-meta">
                 <span>
-                  {formatDate(post.pubDate)} · {post.readingTime} min read
+                  {formatDate(post.pubDate, locale)} · {isGeorgian ? `${post.readingTime} წთ` : `${post.readingTime} min read`}
                 </span>
-                {post.featured ? <span className="blog-featured">Featured</span> : null}
+                {post.featured ? <span className="blog-featured">{copy?.featured ?? "Featured"}</span> : null}
               </div>
 
               <h2>{post.title}</h2>
               <p>{post.description}</p>
 
-              <div className="blog-card-footer">
-                <div className="blog-card-tags">
-                  {post.tags.map((tag) => (
-                    <span className="blog-card-tag" key={tag}>
-                      {formatTag(tag)}
-                    </span>
-                  ))}
-                </div>
+              <ul className="blog-card-tags">
+                {post.tags.map((tag) => (
+                  <li className="blog-card-tag" key={tag}>
+                    {formatTag(tag, locale)}
+                  </li>
+                ))}
+              </ul>
 
+              <div className="blog-card-footer">
                 <span className="blog-card-cta">
-                  Read article
+                  {copy?.read ?? "Read article"}
                   <i
                     className="fa-solid fa-arrow-right"
                     aria-hidden="true"
@@ -181,8 +196,8 @@ export default function BlogFilters({ posts, baseUrl }) {
         </div>
       ) : (
         <div className="blog-empty-state">
-          <h2>No posts match this filter.</h2>
-          <p>Try another tag or clear the search query.</p>
+          <h2>{copy?.none ?? "No posts match this filter."}</h2>
+          <p>{copy?.retry ?? "Try another tag or clear the search query."}</p>
           <button
             type="button"
             className="blog-clear-filters"
@@ -191,7 +206,7 @@ export default function BlogFilters({ posts, baseUrl }) {
               setSelectedTag("all");
             }}
           >
-            Clear filters
+            {copy?.clear ?? "Clear filters"}
           </button>
         </div>
       )}

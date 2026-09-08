@@ -6,6 +6,14 @@
   color: var(--text);
 }
 
+html[lang="ka"] .blog-page {
+  font-family: "Noto Sans Georgian", sans-serif;
+}
+
+html[lang="ka"] .blog-post-content {
+  font-family: "Noto Serif Georgian", serif;
+}
+
 .blog-shell {
   position: relative;
   padding-top: var(--header-offset);
@@ -202,8 +210,7 @@
   gap: 10px;
 }
 
-.blog-tag-filter,
-.blog-card-tag {
+.blog-tag-filter {
   min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -211,9 +218,6 @@
   background: rgba(255, 255, 255, 0.05);
   color: #f4ece6;
   font: inherit;
-}
-
-.blog-tag-filter {
   cursor: pointer;
   transition: transform 160ms var(--ease-out), border-color 160ms ease,
     background-color 160ms ease, color 160ms ease;
@@ -265,17 +269,21 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  color: #b4aaa2;
-  font-size: 0.92rem;
+  color: #a89e97;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
 }
 
 .blog-featured {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(255, 134, 96, 0.12);
-  border: 1px solid rgba(255, 134, 96, 0.2);
-  color: #fff;
-  font-weight: 700;
+  flex: none;
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: rgba(255, 134, 96, 0.14);
+  border: 1px solid rgba(255, 134, 96, 0.24);
+  color: #ffc0a6;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .blog-card h2 {
@@ -286,46 +294,77 @@
 }
 
 .blog-card p {
-  color: #d5cbc3;
-  line-height: 1.8;
-}
-
-.blog-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 18px;
-  margin-top: auto;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  color: #cdc3bb;
+  font-size: 0.96rem;
+  line-height: 1.72;
 }
 
 .blog-card-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
+/* Labels, not controls: the squarer, smaller chip keeps them from reading as
+   the clickable filter pills above the grid. */
 .blog-card-tag {
   display: inline-flex;
   align-items: center;
-  width: fit-content;
-  color: #efe5de;
+  max-width: 100%;
+  padding: 4px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #b8ada5;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: border-color 200ms ease, color 200ms ease;
 }
 
+.blog-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 18px;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Anchored bottom right and styled as a solid control, so the card reads as
+   something you press even though the whole card is the link. */
 .blog-card-cta {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 40px;
   align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  border: 1px solid var(--border);
+  gap: 9px;
+  padding: 9px 17px;
   border-radius: 999px;
+  background: linear-gradient(116deg, var(--accent) 18%, var(--accent-purple) 100%);
+  box-shadow: 0 8px 20px rgba(154, 51, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
   color: #fff;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   white-space: nowrap;
+  transition: box-shadow 200ms ease, transform 200ms var(--ease-out),
+    filter 200ms ease;
 }
 
 .blog-card-cta i {
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   transition: transform 180ms var(--ease-out);
 }
 
@@ -522,7 +561,19 @@
 
 .blog-post-tags {
   justify-content: center;
+  gap: 10px;
   margin: 0;
+}
+
+.blog-post-tags .blog-card-tag {
+  min-height: 40px;
+  padding: 8px 14px;
+  border-color: var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f4ece6;
+  font-size: 0.9rem;
+  white-space: normal;
 }
 
 .blog-post-content {
@@ -856,6 +907,12 @@
   transform: scale(0.97);
 }
 
+.blog-card:active .blog-card-cta {
+  box-shadow: 0 4px 12px rgba(154, 51, 255, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transform: translateY(0);
+}
+
 .blog-footer {
   position: relative;
   z-index: 1;
@@ -880,8 +937,25 @@
     transform: translateY(-4px);
   }
 
+  .blog-card:hover .blog-card-cta {
+    filter: brightness(1.08);
+    box-shadow: 0 12px 26px rgba(154, 51, 255, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
+  }
+
   .blog-card:hover .blog-card-cta i {
     transform: translateX(3px);
+  }
+
+  .blog-card:hover .blog-card-tag {
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #d3c8c0;
+  }
+
+  .blog-post-tags .blog-card-tag:hover {
+    border-color: rgba(255, 134, 96, 0.34);
+    color: #fff;
   }
 
   .back-link:hover {
@@ -910,11 +984,6 @@
 
   .blog-grid {
     grid-template-columns: 1fr;
-  }
-
-  .blog-card-footer {
-    flex-direction: column;
-    align-items: start;
   }
 
   .blog-post-top {
@@ -1058,6 +1127,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .blog-card,
+  .blog-card-cta,
   .blog-card-cta i,
   .blog-tag-filter,
   .blog-clear-filters,

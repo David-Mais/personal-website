@@ -1,4 +1,16 @@
-document.addEventListener("DOMContentLoaded", () => {
+// Re-runs on every client-router swap (blog pages), so each init tears down the
+// listeners the previous page registered on document/window. The router replaces
+// the body element, so its identity tells a real swap apart from the duplicate
+// astro:page-load that follows the first DOMContentLoaded.
+let initializedBody;
+let teardown;
+
+const init = () => {
+  if (initializedBody === document.body) return;
+  initializedBody = document.body;
+  teardown?.abort();
+  teardown = new AbortController();
+  const { signal } = teardown;
   const header = document.querySelector(".site-header");
   const menuButton = document.querySelector(".menu-toggle");
   const navMenu = document.querySelector("#primary-nav");
@@ -25,7 +37,10 @@ document.addEventListener("DOMContentLoaded", () => {
     header?.classList.toggle("nav-open", isOpen);
     navMenu.classList.toggle("is-open", isOpen);
     menuButton.setAttribute("aria-expanded", String(isOpen));
-    menuButton.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+    menuButton.setAttribute(
+      "aria-label",
+      isOpen ? menuButton.dataset.closeLabel : menuButton.dataset.openLabel
+    );
   };
 
   const closeMenu = () => setMenuOpen(false);
@@ -42,11 +57,11 @@ document.addEventListener("DOMContentLoaded", () => {
       closeMenu();
       menuButton.focus();
     }
-  });
+  }, { signal });
 
   document.addEventListener("click", (event) => {
     if (header && !header.contains(event.target)) closeMenu();
-  });
+  }, { signal });
 
   navLinks.forEach((link) => link.addEventListener("click", closeMenu));
 
@@ -494,5 +509,13 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", () => {
     setHeaderOffset();
     if (window.innerWidth > 930) closeMenu();
-  });
-});
+  }, { signal });
+};
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init, { once: true });
+} else {
+  init();
+}
+
+document.addEventListener("astro:page-load", init);

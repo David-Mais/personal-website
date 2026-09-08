@@ -7,13 +7,15 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import remarkCodeFenceMath from "./src/plugins/remark-code-fence-math.mjs";
 
-const blogDirectory = new URL("./src/content/blog/", import.meta.url);
 const readFrontmatterDate = (source, field) =>
   source.match(new RegExp(`^${field}:\\s*["']?([^\\s"']+)`, "m"))?.[1];
-const publishedBlogPosts = readdirSync(blogDirectory)
-  .filter((fileName) => /\.mdx?$/.test(fileName))
-  .map((fileName) => {
-    const source = readFileSync(new URL(fileName, blogDirectory), "utf8");
+const readBlogPosts = (directoryPath, routePrefix) => {
+  const directory = new URL(directoryPath, import.meta.url);
+
+  return readdirSync(directory)
+    .filter((fileName) => /\.mdx?$/.test(fileName))
+    .map((fileName) => {
+    const source = readFileSync(new URL(fileName, directory), "utf8");
     const lastmod =
       readFrontmatterDate(source, "updatedDate") ??
       readFrontmatterDate(source, "pubDate");
@@ -23,10 +25,15 @@ const publishedBlogPosts = readdirSync(blogDirectory)
       lastmod: lastmod
         ? new Date(`${lastmod}T00:00:00.000Z`).toISOString()
         : undefined,
-      pathname: `/blog/${fileName.replace(/\.mdx?$/, "")}/`,
+      pathname: `${routePrefix}${fileName.replace(/\.mdx?$/, "")}/`,
     };
   })
-  .filter((post) => !post.draft);
+    .filter((post) => !post.draft);
+};
+const publishedBlogPosts = [
+  ...readBlogPosts("./src/content/blog/", "/blog/"),
+  ...readBlogPosts("./src/content/blog-ka/", "/ka/blog/"),
+];
 const hasPublishedBlogPosts = publishedBlogPosts.length > 0;
 const blogLastmod = publishedBlogPosts
   .map((post) => post.lastmod)
@@ -56,7 +63,9 @@ export default defineConfig({
         );
 
         if (post?.lastmod) item.lastmod = post.lastmod;
-        if (pathname === "/blog/" && blogLastmod) item.lastmod = blogLastmod;
+        if ((pathname === "/blog/" || pathname === "/ka/blog/") && blogLastmod) {
+          item.lastmod = blogLastmod;
+        }
 
         return item;
       },

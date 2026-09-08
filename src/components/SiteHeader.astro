@@ -1,24 +1,38 @@
 ---
-const { currentPath = Astro.url.pathname } = Astro.props;
+const {
+  currentPath = Astro.url.pathname,
+  locale = "en",
+  alternateHref,
+} = Astro.props;
 const base = import.meta.env.BASE_URL;
-const isBlog = currentPath.startsWith(`${base}blog`) || currentPath.startsWith("/blog");
+const isGeorgian = locale === "ka";
+const isBlog = currentPath.startsWith("/blog") || currentPath.startsWith("/ka/blog");
 const isHome = !isBlog;
 const homeHref = isHome ? "#home" : base;
 const sectionHref = (section) => (isHome ? `#${section}` : `${base}#${section}`);
-const blogHref = `${base}blog/`;
+const blogHref = isGeorgian ? `${base}ka/blog/` : `${base}blog/`;
+const labels = isGeorgian
+  ? { nav: "მთავარი მენიუ", home: "დავით მაისურაძე, მთავარი გვერდი", open: "მენიუს გახსნა", close: "მენიუს დახურვა", about: "ჩემ შესახებ", work: "გამოცდილება", projects: "პროექტები", writing: "სტატიები", contact: "კონტაქტი", language: "ენის არჩევა", english: "ინგლისურად ნახვა", georgian: "ქართული ვერსია, მიმდინარე" }
+  : { nav: "Primary navigation", home: "Davit Maisuradze, home", open: "Open navigation", close: "Close navigation", about: "About", work: "Work", projects: "Projects", writing: "Writing", contact: "Contact", language: "Choose language", english: "English version, current", georgian: "View in Georgian" };
+const languageHref = alternateHref;
+// The blog runs on the client router; the portfolio does not, so links that
+// leave the blog hand control back to a normal page load.
+const leaveBlog = isBlog ? true : undefined;
 ---
 
-<header class="site-header">
-  <nav class="site-nav" aria-label="Primary navigation">
-    <a class="site-brand" href={homeHref} aria-label="Davit Maisuradze, home">
-      <span class="site-brand-mark" aria-hidden="true">DM</span>
-      <span>Davit Maisuradze</span>
+<header class="site-header" transition:name="site-header">
+  <nav class="site-nav" aria-label={labels.nav}>
+    <a class="site-brand" href={homeHref} aria-label={labels.home} data-astro-reload={leaveBlog}>
+      <span class="site-brand-mark" aria-hidden="true" transition:name="site-brand-mark">DM</span>
+      <span>{isGeorgian ? "დავით მაისურაძე" : "Davit Maisuradze"}</span>
     </a>
 
     <button
       type="button"
       class="menu-toggle"
-      aria-label="Open navigation"
+      aria-label={labels.open}
+      data-open-label={labels.open}
+      data-close-label={labels.close}
       aria-controls="primary-nav"
       aria-expanded="false"
     >
@@ -27,15 +41,112 @@ const blogHref = `${base}blog/`;
     </button>
 
     <div class="navbar" id="primary-nav">
-      <a href={sectionHref("about")} class="nav-link">About</a>
-      <a href={sectionHref("experience")} class="nav-link">Work</a>
-      <a href={sectionHref("projects")} class="nav-link">Projects</a>
+      <a href={sectionHref("about")} class="nav-link" data-astro-reload={leaveBlog}>{labels.about}</a>
+      <a href={sectionHref("experience")} class="nav-link" data-astro-reload={leaveBlog}>{labels.work}</a>
+      <a href={sectionHref("projects")} class="nav-link" data-astro-reload={leaveBlog}>{labels.projects}</a>
       <a
         href={blogHref}
         class="nav-link"
         aria-current={isBlog ? "page" : undefined}
-      >Writing</a>
-      <a href={sectionHref("contact")} class="nav-link nav-link-contact">Contact</a>
+      >{labels.writing}</a>
+      <a href={sectionHref("contact")} class="nav-link nav-link-contact" data-astro-reload={leaveBlog}>{labels.contact}</a>
+      {languageHref ? (
+        <div class="lang-switch" data-active={locale}>
+          <div class="lang-switch-track" role="group" aria-label={labels.language}>
+            <span class="lang-switch-thumb" aria-hidden="true" transition:name="lang-thumb"></span>
+            {isGeorgian ? (
+              <a
+                class="lang-option"
+                data-locale="en"
+                href={languageHref}
+                lang="en"
+                hreflang="en"
+                aria-label={labels.english}
+                data-astro-prefetch="hover"
+              >EN</a>
+            ) : (
+              <span class="lang-option" data-locale="en" aria-current="true" aria-label={labels.english}>EN</span>
+            )}
+            {isGeorgian ? (
+              <span class="lang-option lang-option-ka" data-locale="ka" aria-current="true" aria-label={labels.georgian}>ქარ</span>
+            ) : (
+              <a
+                class="lang-option lang-option-ka"
+                data-locale="ka"
+                href={languageHref}
+                lang="ka"
+                hreflang="ka"
+                aria-label={labels.georgian}
+                data-astro-prefetch="hover"
+              >ქარ</a>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   </nav>
 </header>
+
+<script>
+  // Module scripts run once per full page load, so these document-level
+  // listeners keep working across every client-router swap.
+  const GEORGIAN_FONTS =
+    "https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&family=Noto+Serif+Georgian:wght@400;500;600;700&display=swap";
+  let scrollToRestore: number | null = null;
+  let fontsWarmed = document.documentElement.lang === "ka";
+
+  // Pull the Georgian faces down before the swap, so the morph doesn't land on
+  // fallback glyphs and reflow a beat later.
+  const warmGeorgianFonts = () => {
+    if (fontsWarmed) return;
+    fontsWarmed = true;
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = GEORGIAN_FONTS;
+
+    // The stylesheet alone doesn't fetch the woff2 files; asking for the faces does.
+    link.addEventListener("load", () => {
+      void document.fonts?.load("400 1rem 'Noto Sans Georgian'", "\u10e5\u10d0\u10e0");
+      void document.fonts?.load("700 1rem 'Noto Sans Georgian'", "\u10e5\u10d0\u10e0");
+      void document.fonts?.load("400 1rem 'Noto Serif Georgian'", "\u10e5\u10d0\u10e0");
+    });
+    document.head.append(link);
+  };
+
+  const langOption = (target: EventTarget | null, locale?: string) => {
+    const selector = locale
+      ? `a.lang-option[data-locale="${locale}"]`
+      : "a.lang-option";
+
+    return target instanceof Element ? target.closest(selector) : null;
+  };
+
+  document.addEventListener("pointerover", (event) => {
+    if (langOption(event.target, "ka")) warmGeorgianFonts();
+  });
+  document.addEventListener("focusin", (event) => {
+    if (langOption(event.target, "ka")) warmGeorgianFonts();
+  });
+  document.addEventListener(
+    "touchstart",
+    (event) => {
+      if (langOption(event.target, "ka")) warmGeorgianFonts();
+    },
+    { passive: true }
+  );
+
+  // A language switch is the same page in another language, so hold the reading
+  // position instead of jumping to the top like a normal navigation.
+  document.addEventListener("click", (event) => {
+    if (langOption(event.target)) scrollToRestore = window.scrollY;
+  });
+
+  document.addEventListener("astro:after-swap", () => {
+    if (scrollToRestore === null) return;
+
+    const top = scrollToRestore;
+    scrollToRestore = null;
+    window.scrollTo({ top, behavior: "instant" });
+  });
+</script>

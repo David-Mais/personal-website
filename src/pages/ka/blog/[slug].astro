@@ -1,0 +1,71 @@
+---
+import { getCollection, render } from "astro:content";
+import SiteHeader from "../../../components/SiteHeader.astro";
+import BlogLayout from "../../../layouts/BlogLayout.astro";
+import { formatTag } from "../../../utils/tags.js";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blogKa", ({ data }) => !data.draft);
+  const englishPosts = await getCollection("blog", ({ data }) => !data.draft);
+  const englishIds = new Set(englishPosts.map((post) => post.id.replace(/\.mdx?$/, "")));
+  return posts.map((post) => {
+    const slug = post.id.replace(/\.mdx?$/, "");
+    return { params: { slug }, props: { post, hasEnglishVersion: englishIds.has(slug) } };
+  });
+}
+
+const { post, hasEnglishVersion } = Astro.props;
+const { Content } = await render(post);
+const slug = post.id.replace(/\.mdx?$/, "");
+const siteUrl = Astro.site ?? new URL(Astro.url.origin);
+const canonicalUrl = post.data.canonical ? new URL(post.data.canonical) : new URL(`/ka/blog/${slug}/`, siteUrl);
+const englishUrl = new URL(`/blog/${slug}/`, siteUrl);
+const homepageUrl = new URL("/", siteUrl);
+const blogUrl = new URL("/ka/blog/", siteUrl);
+const authorName = post.data.author ?? "დავით მაისურაძე";
+const seoTitle = post.data.seoTitle ?? `${post.data.title} | დავით მაისურაძე`;
+const seoDescription = post.data.seoDescription ?? post.data.description;
+const socialImageUrl = new URL(post.data.image ?? "/resources/images/davit-maisuradze-social-card.png", siteUrl);
+const publishedTime = post.data.pubDate.toISOString();
+const modifiedTime = (post.data.updatedDate ?? post.data.pubDate).toISOString();
+const readingTime = Math.max(1, Math.ceil((post.body ?? "").split(/\s+/).filter(Boolean).length / 200));
+const alternates = hasEnglishVersion ? [
+  { hreflang: "en", href: englishUrl }, { hreflang: "ka", href: canonicalUrl }, { hreflang: "x-default", href: englishUrl },
+] : [{ hreflang: "ka", href: canonicalUrl }];
+const articleStructuredData = {
+  "@context": "https://schema.org", "@type": "BlogPosting", "@id": `${canonicalUrl.href}#article`, url: canonicalUrl.href,
+  mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl.href }, headline: post.data.title,
+  description: seoDescription, inLanguage: "ka", image: [socialImageUrl.href], datePublished: publishedTime, dateModified: modifiedTime,
+  author: { "@type": "Person", "@id": `${new URL("/", siteUrl).href}#davit-maisuradze`, name: authorName, url: homepageUrl.href,
+    sameAs: ["https://www.linkedin.com/in/david-maisuradze2004/", "https://github.com/DUT1K1"] },
+  keywords: post.data.tags, isPartOf: { "@type": "Blog", "@id": `${blogUrl.href}#blog`, name: "დავით მაისურაძის ბლოგი", url: blogUrl.href },
+};
+const breadcrumbs = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+  { "@type": "ListItem", position: 1, name: "მთავარი", item: homepageUrl.href },
+  { "@type": "ListItem", position: 2, name: "სტატიები", item: blogUrl.href },
+  { "@type": "ListItem", position: 3, name: post.data.title, item: canonicalUrl.href },
+] };
+const formatDate = (date) => new Intl.DateTimeFormat("ka-GE", { year: "numeric", month: "long", day: "numeric" }).format(date);
+---
+
+<BlogLayout title={seoTitle} description={seoDescription} canonical={canonicalUrl} image={socialImageUrl} imageAlt={`${post.data.title}, დავით მაისურაძის სტატია`} type="article" publishedTime={publishedTime} modifiedTime={modifiedTime} tags={post.data.tags} noindex={post.data.noindex} structuredData={[articleStructuredData, breadcrumbs]} lang="ka" locale="ka_GE" alternateLocales={hasEnglishVersion ? ["en_US"] : []} alternates={alternates}>
+  <SiteHeader currentPath="/ka/blog/" locale="ka" alternateHref={hasEnglishVersion ? englishUrl.pathname : "/blog/"} />
+  <main id="main-content" class="blog-shell">
+    <section class="container blog-post-shell">
+      <a href="/ka/blog/" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>ყველა სტატია</a>
+      <section class="blog-post-top">
+        <div class="blog-post-header"><div class="blog-post-heading"><p class="blog-eyebrow">სტატია</p><h1 transition:name="post-heading">{post.data.title}</h1><p class="blog-post-description">{post.data.description}</p></div></div>
+        <aside class="blog-post-aside">
+          <div class="blog-post-author"><img src="/resources/images/prof-pic.png" alt="დავით მაისურაძის პორტრეტი" class="blog-post-author-avatar" loading="lazy" /><div><p class="blog-post-author-label">ავტორი</p><p class="blog-post-author-name">{authorName}</p></div></div>
+          <div class="blog-post-stat-grid">
+            <div class="blog-post-stat"><span class="blog-post-stat-label">გამოქვეყნდა</span><span class="blog-post-stat-value">{formatDate(post.data.pubDate)}</span></div>
+            {post.data.updatedDate ? <div class="blog-post-stat"><span class="blog-post-stat-label">განახლდა</span><span class="blog-post-stat-value">{formatDate(post.data.updatedDate)}</span></div> : null}
+            <div class="blog-post-stat"><span class="blog-post-stat-label">წაკითხვის დრო</span><span class="blog-post-stat-value">{readingTime} წთ</span></div>
+          </div>
+          <div class="blog-card-tags blog-post-tags">{post.data.tags.map((tag) => <a href={`/ka/blog/?tag=${encodeURIComponent(tag)}`} class="blog-card-tag">{formatTag(tag, "ka")}</a>)}</div>
+        </aside>
+      </section>
+      <article class="blog-post-content-card"><div class="blog-post-content"><Content /></div></article>
+    </section>
+  </main>
+</BlogLayout>

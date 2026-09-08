@@ -19,6 +19,9 @@ interface Props {
   noindex?: boolean;
   nofollow?: boolean;
   structuredData?: StructuredData | StructuredData[];
+  locale?: string;
+  alternateLocales?: string[];
+  alternates?: Array<{ hreflang: string; href: string | URL }>;
 }
 
 const siteUrl = Astro.site ?? new URL(Astro.url.origin);
@@ -40,10 +43,14 @@ const {
   noindex = false,
   nofollow = false,
   structuredData = [],
+  locale = "en_US",
+  alternateLocales = [],
+  alternates = [],
 } = Astro.props;
 
 const canonicalUrl = canonical instanceof URL ? canonical : new URL(canonical, siteUrl);
 const imageUrl = image instanceof URL ? image : new URL(image, siteUrl);
+const siteName = locale === "ka_GE" ? "დავით მაისურაძე" : "Davit Maisuradze";
 const robots = [
   noindex ? "noindex" : "index",
   nofollow ? "nofollow" : "follow",
@@ -60,11 +67,17 @@ const schemas = Array.isArray(structuredData) ? structuredData : [structuredData
 <meta name="robots" content={robots} />
 <meta name="googlebot" content={robots} />
 <link rel="canonical" href={canonicalUrl} />
+{alternates.map(({ hreflang, href }) => (
+  <link rel="alternate" hreflang={hreflang} href={href instanceof URL ? href : new URL(href, siteUrl)} />
+))}
 <link rel="sitemap" href={new URL("sitemap-index.xml", siteUrl)} />
 
 <meta property="og:type" content={type} />
-<meta property="og:site_name" content="Davit Maisuradze" />
-<meta property="og:locale" content="en_US" />
+<meta property="og:site_name" content={siteName} />
+<meta property="og:locale" content={locale} />
+{alternateLocales.map((alternateLocale) => (
+  <meta property="og:locale:alternate" content={alternateLocale} />
+))}
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonicalUrl} />

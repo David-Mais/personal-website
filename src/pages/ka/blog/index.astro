@@ -1,0 +1,63 @@
+---
+import { getCollection } from "astro:content";
+import BlogFilters from "../../../components/BlogFilters.jsx";
+import SiteHeader from "../../../components/SiteHeader.astro";
+import BlogLayout from "../../../layouts/BlogLayout.astro";
+
+const posts = (await getCollection("blogKa", ({ data }) => !data.draft))
+  .sort((left, right) => right.data.pubDate.valueOf() - left.data.pubDate.valueOf())
+  .map((post) => ({
+    slug: post.id.replace(/\.mdx?$/, ""),
+    title: post.data.title,
+    description: post.data.description,
+    pubDate: post.data.pubDate.toISOString(),
+    tags: post.data.tags,
+    featured: post.data.featured,
+    readingTime: Math.max(1, Math.ceil(post.body.split(/\s+/).filter(Boolean).length / 200)),
+  }));
+const topics = ["პროგრამირება", "კომპიუტერული მეცნიერება", "ტექნოლოგიები", "სხვადასხვა"];
+const siteUrl = Astro.site ?? new URL(Astro.url.origin);
+const blogUrl = new URL("/ka/blog/", siteUrl);
+const englishBlogUrl = new URL("/blog/", siteUrl);
+const title = "სტატიები პროგრამული ინჟინერიის შესახებ | დავით მაისურაძე";
+const description = "დავით მაისურაძის სტატიები Java-ს, Python-ის, ბექენდ ინჟინერიის, ღრუბლოვანი არქიტექტურის, უსაფრთხოებისა და რეალური პროდუქტების შექმნის შესახებ.";
+const alternates = [
+  { hreflang: "en", href: englishBlogUrl },
+  { hreflang: "ka", href: blogUrl },
+  { hreflang: "x-default", href: englishBlogUrl },
+];
+const structuredData = {
+  "@context": "https://schema.org", "@type": "Blog", "@id": `${blogUrl.href}#blog`,
+  url: blogUrl.href, name: title, description, inLanguage: "ka",
+  author: { "@type": "Person", "@id": `${new URL("/", siteUrl).href}#davit-maisuradze`, name: "დავით მაისურაძე", url: new URL("/", siteUrl).href },
+};
+const breadcrumbs = {
+  "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+    { "@type": "ListItem", position: 1, name: "მთავარი", item: new URL("/", siteUrl).href },
+    { "@type": "ListItem", position: 2, name: "სტატიები", item: blogUrl.href },
+  ],
+};
+---
+
+<BlogLayout title={title} description={description} canonical={blogUrl} imageAlt="დავით მაისურაძე, პროგრამული უზრუნველყოფის დეველოპერი და ტექნიკური ლიდერი" lang="ka" locale="ka_GE" alternateLocales={["en_US"]} alternates={alternates} noindex={posts.length === 0} structuredData={[structuredData, breadcrumbs]}>
+  <SiteHeader currentPath="/ka/blog/" locale="ka" alternateHref="/blog/" />
+  <main id="main-content" class="blog-shell">
+    <section class="container blog-hero">
+      <div class="blog-hero-panel">
+        <div class="blog-hero-copy">
+          <p class="blog-eyebrow">ჩანაწერები და სტატიები</p>
+          <h1 transition:name="blog-heading">ჩემი <span>ბლოგი</span></h1>
+          <p class="blog-hero-text">ჩანაწერები იმის შესახებ, რაც ჩემთვის საინტერესოა. თემები, რომლებიც ეხება კომპიუტერულ მეცნიერებას, მათემატიკას და სხვა საინტერესო საკითხებს.</p>
+        </div>
+        <aside class="blog-hero-aside" aria-label="ბლოგის თემები">
+          <p class="blog-hero-label">რას ნახავთ აქ</p>
+          <ul class="blog-topic-list">{topics.map((topic) => <li>{topic}</li>)}</ul>
+          <p class="blog-hero-note">ვწერ თემებზე, რომლებიც მაინტერესებს, სიამოვნებას მანიჭებს და სხვებისთვისაც სასარგებლო მგონია.</p>
+        </aside>
+      </div>
+    </section>
+    <section class="container blog-index-section">
+      <BlogFilters client:load posts={posts} baseUrl="/ka/" locale="ka" />
+    </section>
+  </main>
+</BlogLayout>

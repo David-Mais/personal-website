@@ -23,6 +23,12 @@ const posts = (await getCollection("blog", ({ data }) => !data.draft))
 const topicPreview = ["Programming", "Mathematics", "Tech", "Random stuff"];
 const siteUrl = Astro.site ?? new URL(Astro.url.origin);
 const blogUrl = new URL(Astro.url.pathname, siteUrl);
+const georgianBlogUrl = new URL("/ka/blog/", siteUrl);
+const alternates = [
+  { hreflang: "en", href: blogUrl },
+  { hreflang: "ka", href: georgianBlogUrl },
+  { hreflang: "x-default", href: blogUrl },
+];
 const blogTitle = "Writing on Software Engineering | Davit Maisuradze";
 const blogDescription =
   "Articles by Davit Maisuradze about Java, Python, backend engineering, cloud architecture, security, and building real software products.";
@@ -67,15 +73,17 @@ const blogBreadcrumbs = {
   canonical={blogUrl}
   noindex={posts.length === 0}
   structuredData={[blogStructuredData, blogBreadcrumbs]}
+  alternates={alternates}
+  alternateLocales={["ka_GE"]}
 >
-  <SiteHeader currentPath="/blog" />
+  <SiteHeader currentPath="/blog" alternateHref="/ka/blog/" />
 
   <main id="main-content" class="blog-shell">
     <section class="container blog-hero">
       <div class="blog-hero-panel">
         <div class="blog-hero-copy">
           <p class="blog-eyebrow">Notes and writing</p>
-          <h1>My <span>Blog</span></h1>
+          <h1 transition:name="blog-heading">My <span>Blog</span></h1>
           <p class="blog-hero-text">
             Longer writing about backend engineering, startup execution, and the
             systems thinking I am developing while building products.
