@@ -36,13 +36,19 @@ const blogLastmod = publishedBlogPosts
 
 export default defineConfig({
   site: "https://davitmaisuradze.com",
+  trailingSlash: "always",
   integrations: [
     mdx(),
     react(),
     sitemap({
-      filter: (page) =>
-        !page.endsWith("/blogs/") &&
-        (hasPublishedBlogPosts || !page.endsWith("/blog/")),
+      filter: (page) => {
+        const pathname = new URL(page).pathname.replace(/\/+$/, "") || "/";
+
+        return (
+          pathname !== "/blogs" &&
+          (hasPublishedBlogPosts || pathname !== "/blog")
+        );
+      },
       serialize(item) {
         const pathname = new URL(item.url).pathname;
         const post = publishedBlogPosts.find(
